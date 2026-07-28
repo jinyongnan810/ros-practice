@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "ranch-hand-robotics.rde-ros-2",
+    "twxs.cmake"
+  ]
+}
