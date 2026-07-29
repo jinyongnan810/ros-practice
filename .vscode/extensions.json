@@ -1,6 +1,8 @@
 {
   "recommendations": [
     "ranch-hand-robotics.rde-ros-2",
-    "twxs.cmake"
+    "twxs.cmake",
+    "ms-python.black-formatter",
+    "ms-python.isort"
   ]
 }
