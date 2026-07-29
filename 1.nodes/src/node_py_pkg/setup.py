@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            "hello_world_node = node_py_pkg.hello_world_node:main",
         ],
     },
 )
