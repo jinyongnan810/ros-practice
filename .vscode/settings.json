@@ -7,8 +7,15 @@
             "source.organizeImports": "explicit"
         },
     },
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+    },
     "isort.args": [
         "--profile",
         "black"
     ],
+    "cmake.sourceDirectory": "/home/kin/shared/shared/ros-practice/1.nodes/src/node_cpp_pkg",
 }

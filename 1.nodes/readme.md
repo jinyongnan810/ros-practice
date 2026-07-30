@@ -46,7 +46,9 @@ ros2 pkg create node_cpp_pkg --build-type ament_cmake --dependencies rclcpp
 colcon build
 # build one pkg
 colcon build --packages-select node_py_pkg
+colcon build --packages-select node_cpp_pkg
 
 # run pkg
 ros2 run node_py_pkg hello_world_node
+ros2 run node_cpp_pkg hello_world_node
 ```
