@@ -1,2 +1,0 @@
-build:
-	colcon build
