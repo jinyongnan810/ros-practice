@@ -48,7 +48,24 @@ colcon build
 colcon build --packages-select node_py_pkg
 colcon build --packages-select node_cpp_pkg
 
-# run pkg
+# run node
 ros2 run node_py_pkg hello_world_node
 ros2 run node_cpp_pkg hello_world_node
+# with different names
+ros2 run node_py_pkg hello_world_node --ros-args -r __node:=abc_node
+
+
+# list running nodes
+ros2 node list
+
+# see node info
+ros2 node info /hello_world_node 
+
+# check node graph
+rqt_graph
+
+# demos
+ros2 run turtlesim turtlesim_node
+ros2 run turtlesim turtle_teleop_key
+
 ```
