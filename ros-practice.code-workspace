@@ -1,0 +1,34 @@
+{
+    "folders": [
+        {
+            "name": "1.nodes",
+            "path": "1.nodes"
+        },
+        {
+            "name": "2.topics",
+            "path": "2.topics"
+        }
+    ],
+    "settings": {
+        "ROS2.distro": "jazzy",
+        "editor.formatOnSave": true,
+        "[cpp]": {
+            "editor.defaultFormatter": "ms-vscode.cpptools",
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "explicit"
+            }
+        },
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "explicit"
+            }
+        },
+        "python.autoComplete.extraPaths": [
+            "/opt/ros/jazzy/lib/python3.12/site-packages"
+        ],
+        "python.analysis.extraPaths": [
+            "/opt/ros/jazzy/lib/python3.12/site-packages"
+        ]
+    }
+}
