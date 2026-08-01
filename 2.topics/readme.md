@@ -41,7 +41,24 @@ ros2 node info /news_station_node
 
 # see topics
 ros2 topic list
+# status of the topic
+ros2 topic info /news
+# frequency of the topic
+ros2 topic hz /news
+# bitrate of the topic
+ros2 topic bw /news
+# directly listen to the topic
 ros2 topic echo /news
+# directly publish to the topic (5 times a second)
+ros2 topic pub -r 5 /news std_msgs/msg/String "{data: 'Hello from direct pub'}"
+# rename the topic name
+ros2 run topic_py_pkg news_station_node --ros-args -r __node:=station1_node -r news:=renamed_news
+ros2 run topic_py_pkg radio_node --ros-args -r __node:=radio1_node -r news:=renamed_news
+# record and replay the topic data
+ros2 bag record -o pub_tests /news # use -a to record all topics
+ros2 bag info pub_tests
+ros2 bag play pub_tests
+
 
 # check node graph
 rqt_graph
