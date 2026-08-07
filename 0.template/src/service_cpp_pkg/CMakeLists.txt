@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(topic_cpp_pkg)
+project(service_cpp_pkg)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -9,16 +9,14 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
 
-add_executable(news_station src/news_station.cpp)
-add_executable(radio src/radio.cpp)
-ament_target_dependencies(news_station rclcpp std_msgs)
-ament_target_dependencies(radio rclcpp std_msgs)
-
+add_executable(acc_server src/acc_server.cpp)
+add_executable(acc_client src/acc_client.cpp)
+ament_target_dependencies(acc_server rclcpp)
+ament_target_dependencies(acc_client rclcpp)
 install(TARGETS
-  news_station
-  radio
+  acc_server
+  acc_client
   DESTINATION lib/${PROJECT_NAME}
 )
 

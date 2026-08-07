@@ -7,6 +7,10 @@
         {
             "name": "2.topics",
             "path": "2.topics"
+        },
+        {
+            "name": "3.services",
+            "path": "3.services"
         }
     ],
     "settings": {
