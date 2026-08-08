@@ -25,41 +25,25 @@ colcon build --packages-select service_cpp_pkg
 colcon build --packages-select custom_interfaces
 
 # run node
-ros2 run service_py_pkg news_station_node
-ros2 run service_py_pkg radio_node
-ros2 run service_cpp_pkg news_station
-ros2 run service_cpp_pkg radio
+ros2 run service_py_pkg acc_server
+ros2 run service_py_pkg acc_client
+ros2 run service_cpp_pkg acc_server
+ros2 run service_cpp_pkg acc_client
 # with different names
-ros2 run service_py_pkg news_station_node --ros-args -r __node:=station1_node
-ros2 run service_py_pkg radio_node --ros-args -r __node:=radio1_node
-ros2 run service_py_pkg radio_node --ros-args -r __node:=radio2_node
+ros2 run service_py_pkg acc_server --ros-args -r __node:=server
+ros2 run service_py_pkg acc_client --ros-args -r __node:=client1
+ros2 run service_py_pkg acc_client --ros-args -r __node:=client2
+# with different service names
+ros2 run service_py_pkg acc_server --ros-args -r __node:=server -r /accumulate:=/accumulate1
+ros2 run service_py_pkg acc_client --ros-args -r __node:=client1 -r /accumulate:=/accumulate1
 
-
-# list running nodes
-ros2 node list
-
-# see node info
-ros2 node info /news_station_node
-
-# see topics
-ros2 topic list
-# status of the topic
-ros2 topic info /news
-# frequency of the topic
-ros2 topic hz /news
-# bitrate of the topic
-ros2 topic bw /news
-# directly listen to the topic
-ros2 topic echo /news
-# directly publish to the topic (5 times a second)
-ros2 topic pub -r 5 /news std_msgs/msg/String "{data: 'Hello from direct pub'}"
-# rename the topic name
-ros2 run topic_py_pkg news_station_node --ros-args -r __node:=station1_node -r news:=renamed_news
-ros2 run topic_py_pkg radio_node --ros-args -r __node:=radio1_node -r news:=renamed_news
-# record and replay the topic data
-ros2 bag record -o pub_tests /news # use -a to record all topics
-ros2 bag info pub_tests
-ros2 bag play pub_tests
+# get the type of the service
+ros2 service type /accumulate
+# check service interface
+ros2 interface show custom_interfaces/srv/Acc
+# call service directly from command line
+# also can be called with rqt's Service Caller plugin
+ros2 service call /accumulate custom_interfaces/srv/Acc "{a: 1, b: 2, c: 3}"
 
 
 # check node graph

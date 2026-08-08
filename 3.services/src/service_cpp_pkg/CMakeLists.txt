@@ -9,11 +9,12 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(custom_interfaces REQUIRED)
 
 add_executable(acc_server src/acc_server.cpp)
 add_executable(acc_client src/acc_client.cpp)
-ament_target_dependencies(acc_server rclcpp)
-ament_target_dependencies(acc_client rclcpp)
+ament_target_dependencies(acc_server rclcpp custom_interfaces)
+ament_target_dependencies(acc_client rclcpp custom_interfaces)
 install(TARGETS
   acc_server
   acc_client
