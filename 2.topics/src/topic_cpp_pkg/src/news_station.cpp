@@ -1,5 +1,10 @@
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
+#include "custom_interfaces/msg/news.hpp"
+// #include "std_msgs/msg/string.hpp"
+
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 class NewsStationNode : public rclcpp::Node
 {
@@ -18,7 +23,8 @@ private:
     // Timer to periodically publish a message
     rclcpp::TimerBase::SharedPtr timer_;
     // Publisher to publish messages
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_ = this->create_publisher<std_msgs::msg::String>("news", 10);
+    rclcpp::Publisher<custom_interfaces::msg::News>::SharedPtr publisher_ = this->create_publisher<custom_interfaces::msg::News>("news", 10);
+    // rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_ = this->create_publisher<std_msgs::msg::String>("news", 10);
     // Counter for message published
     int counter_ = 0;
     // Log a message to indicate that the node has started
@@ -42,11 +48,24 @@ private:
     void publish_periodic_message()
     {
         // Create a message to publish
-        auto message = std::make_shared<std_msgs::msg::String>();
-        message->data = "News update! Counter: " + std::to_string(counter_++);
+        auto message = std::make_shared<custom_interfaces::msg::News>();
+        // auto message = std::make_shared<std_msgs::msg::String>();
+        const auto now = std::time(nullptr);
+        std::ostringstream datetime;
+        datetime << std::put_time(std::localtime(&now), "%Y-%m-%dT%H:%M:%S");
+        message->datetime = datetime.str();
+        message->title = "News update";
+        message->content = "Counter: " + std::to_string(counter_++);
+        // message->data = "News update! Counter: " + std::to_string(counter_++);
         // Publish the message
         publisher_->publish(*message);
-        RCLCPP_INFO(this->get_logger(), "Published: '%s'", message->data.c_str());
+        RCLCPP_INFO(
+            this->get_logger(),
+            "Published [%s] %s: %s",
+            message->datetime.c_str(),
+            message->title.c_str(),
+            message->content.c_str());
+        // RCLCPP_INFO(this->get_logger(), "Published: '%s'", message->data.c_str());
     }
 };
 

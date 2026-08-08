@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
+from datetime import datetime
+
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+
+from custom_interfaces.msg import News
+
+# from std_msgs.msg import String
 
 
 class NewsStationNode(Node):
@@ -13,16 +18,22 @@ class NewsStationNode(Node):
         self.get_logger().info("News Station Node has been started!")
         # Create a publisher
         # 10 is the queue size, which is the maximum number of messages that can be buffered before being sent to subscribers
-        self.publisher_ = self.create_publisher(String, "news", 10)
+        self.publisher_ = self.create_publisher(News, "news", 10)
+        # self.publisher_ = self.create_publisher(String, "news", 10)
         # Create a timer that calls the timer_callback function every second
         self.create_timer(1.0, self.timer_callback)
 
     def timer_callback(self):
         """Callback function that is called every second."""
-        msg = String()
-        msg.data = f"News update! {self.counter}"
+        msg = News()
+        # msg = String()
+        msg.datetime = datetime.now().isoformat(timespec="seconds")
+        msg.title = "News update"
+        msg.content = f"Counter: {self.counter}"
+        # msg.data = f"News update! {self.counter}"
         self.publisher_.publish(msg)
-        self.get_logger().info(f"published News update! {self.counter}")
+        self.get_logger().info(f"Published [{msg.datetime}] {msg.title}: {msg.content}")
+        # self.get_logger().info(f"published News update! {self.counter}")
         self.counter += 1
 
 

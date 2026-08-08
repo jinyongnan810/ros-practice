@@ -15,12 +15,15 @@ direnv allow
 ros2 pkg create topic_py_pkg --build-type ament_python --dependencies rclpy
 # create c++ pkg
 ros2 pkg create topic_cpp_pkg --build-type ament_cmake --dependencies rclcpp
+# create custom msg pkg
+ros2 pkg create custom_interfaces --build-type ament_cmake
 
 # build all pkgs
 colcon build
 # build one pkg
 colcon build --packages-select topic_py_pkg
 colcon build --packages-select topic_cpp_pkg
+colcon build --packages-select custom_interfaces
 
 # run node
 ros2 run topic_py_pkg news_station_node

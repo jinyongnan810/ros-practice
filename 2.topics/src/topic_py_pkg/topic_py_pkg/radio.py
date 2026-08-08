@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+
+from custom_interfaces.msg import News
+
+# from std_msgs.msg import String
 
 
 class RadioNode(Node):
@@ -13,12 +16,16 @@ class RadioNode(Node):
         # Create a subscriber
         # 10 is the queue size, which is the maximum number of messages that can be buffered before being sent to the callback function
         self.subscription = self.create_subscription(
-            String, "news", self.listener_callback, 10
+            News, "news", self.listener_callback, 10
         )
+        # self.subscription = self.create_subscription(
+        #     String, "news", self.listener_callback, 10
+        # )
 
     def listener_callback(self, msg):
         """Callback function that is called when a message is received."""
-        self.get_logger().info(f"Received: {msg.data}")
+        self.get_logger().info(f"Received [{msg.datetime}] {msg.title}: {msg.content}")
+        # self.get_logger().info(f"Received: {msg.data}")
 
 
 def main(args=None):

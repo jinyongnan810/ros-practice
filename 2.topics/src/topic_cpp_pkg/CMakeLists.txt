@@ -10,11 +10,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(custom_interfaces REQUIRED)
 
 add_executable(news_station src/news_station.cpp)
 add_executable(radio src/radio.cpp)
-ament_target_dependencies(news_station rclcpp std_msgs)
-ament_target_dependencies(radio rclcpp std_msgs)
+ament_target_dependencies(news_station rclcpp std_msgs custom_interfaces)
+ament_target_dependencies(radio rclcpp std_msgs custom_interfaces)
 
 install(TARGETS
   news_station
