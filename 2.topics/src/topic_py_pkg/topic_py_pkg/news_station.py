@@ -10,21 +10,24 @@ from custom_interfaces.msg import News
 
 
 class NewsStationNode(Node):
-    """A simple ROS2 node that creates topic "news" and publishes "News update!" every second."""
+    """A simple ROS2 node that periodically publishes updates to the "news" topic."""
 
     def __init__(self):
         super().__init__("news_station_node")
         self.counter = 0
+        timer_interval = self.declare_parameter("timer_interval", 1.0).value
+        if timer_interval <= 0:
+            raise ValueError("timer_interval must be greater than 0 seconds")
         self.get_logger().info("News Station Node has been started!")
         # Create a publisher
         # 10 is the queue size, which is the maximum number of messages that can be buffered before being sent to subscribers
         self.publisher_ = self.create_publisher(News, "news", 10)
         # self.publisher_ = self.create_publisher(String, "news", 10)
-        # Create a timer that calls the timer_callback function every second
-        self.create_timer(1.0, self.timer_callback)
+        # Create a timer that calls the timer_callback function periodically
+        self.create_timer(timer_interval, self.timer_callback)
 
     def timer_callback(self):
-        """Callback function that is called every second."""
+        """Publish the next news update."""
         msg = News()
         # msg = String()
         msg.datetime = datetime.now().isoformat(timespec="seconds")

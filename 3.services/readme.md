@@ -4,6 +4,7 @@ A Service is client/server system.
 Service has following features:
 - Service calls canbe synchronous or asynchronous, i.e. a client can call a service and wait for the response, or a client can call a service and continue doing other things while waiting for the response.
 - One message type for request and one message type for response.
+- Anonymous, i.e. a client can call a service without knowing the server node's name, and a server can provide a service without knowing the client's name.
 
 ### Commands
 ```bash

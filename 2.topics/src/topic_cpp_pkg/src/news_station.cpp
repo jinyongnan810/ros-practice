@@ -2,8 +2,10 @@
 #include "custom_interfaces/msg/news.hpp"
 // #include "std_msgs/msg/string.hpp"
 
+#include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <stdexcept>
 #include <sstream>
 
 class NewsStationNode : public rclcpp::Node
@@ -11,12 +13,17 @@ class NewsStationNode : public rclcpp::Node
 public:
     NewsStationNode() : Node("news_station_node")
     {
+        const auto timer_interval = this->declare_parameter<double>("timer_interval", 1.0);
+        if (timer_interval <= 0.0)
+        {
+            throw std::invalid_argument("timer_interval must be greater than 0 seconds");
+        }
         // Initialize the timer
         timer_ = nullptr;
         // Initialize the publisher
         log_startup_message();
-        // Create a periodic timer to publish a message every second
-        create_periodic_timer();
+        // Create a periodic timer to publish messages
+        create_periodic_timer(timer_interval);
     }
 
 private:
@@ -34,10 +41,10 @@ private:
     }
 
     // Create a timer to periodically publish a message
-    void create_periodic_timer()
+    void create_periodic_timer(double timer_interval)
     {
         timer_ = this->create_wall_timer(
-            std::chrono::seconds(1),
+            std::chrono::duration<double>(timer_interval),
             [this]()
             {
                 publish_periodic_message();
