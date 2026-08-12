@@ -33,6 +33,9 @@ ros2 run topic_cpp_pkg radio
 # with a different timer interval (seconds)
 ros2 run topic_py_pkg news_station_node --ros-args -p timer_interval:=0.5
 ros2 run topic_cpp_pkg news_station --ros-args -p timer_interval:=0.5
+# load parameters from a YAML file
+ros2 run topic_py_pkg news_station_node --ros-args --params-file config/news_station.yaml
+ros2 run topic_cpp_pkg news_station --ros-args --params-file config/news_station.yaml
 # with different names
 ros2 run topic_py_pkg news_station_node --ros-args -r __node:=station1_node
 ros2 run topic_py_pkg radio_node --ros-args -r __node:=radio1_node
@@ -45,6 +48,8 @@ ros2 node list
 # list running nodes' parameters
 ros2 param list
 ros2 param list /news_station_node
+# check parameter value
+ros2 param get /news_station_node timer_interval
 
 # see node info
 ros2 node info /news_station_node

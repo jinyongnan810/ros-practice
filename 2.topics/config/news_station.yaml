@@ -1,0 +1,3 @@
+news_station_node:
+  ros__parameters:
+    timer_interval: 2.0
