@@ -17,6 +17,8 @@ ros2 pkg create topic_py_pkg --build-type ament_python --dependencies rclpy
 ros2 pkg create topic_cpp_pkg --build-type ament_cmake --dependencies rclcpp
 # create custom msg pkg
 ros2 pkg create custom_interfaces --build-type ament_cmake
+# create bringup pkg
+ros2 pkg create topics_bringup --build-type ament_cmake
 
 # build all pkgs
 colcon build
@@ -24,12 +26,16 @@ colcon build
 colcon build --packages-select topic_py_pkg
 colcon build --packages-select topic_cpp_pkg
 colcon build --packages-select custom_interfaces
+colcon build --packages-select topics_bringup
 
 # run node
 ros2 run topic_py_pkg news_station_node
 ros2 run topic_py_pkg radio_node
 ros2 run topic_cpp_pkg news_station
 ros2 run topic_cpp_pkg radio
+# launch all news station and radio nodes
+ros2 launch topics_bringup topics.launch.py
+ros2 launch topics_bringup topics.launch.xml
 # with a different timer interval (seconds)
 ros2 run topic_py_pkg news_station_node --ros-args -p timer_interval:=0.5
 ros2 run topic_cpp_pkg news_station --ros-args -p timer_interval:=0.5
