@@ -2,7 +2,9 @@
 from datetime import datetime
 
 import rclpy
+from rcl_interfaces.msg import SetParametersResult
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 
 from custom_interfaces.msg import News
 
@@ -24,7 +26,38 @@ class NewsStationNode(Node):
         self.publisher_ = self.create_publisher(News, "news", 10)
         # self.publisher_ = self.create_publisher(String, "news", 10)
         # Create a timer that calls the timer_callback function periodically
-        self.create_timer(timer_interval, self.timer_callback)
+        self.timer = self.create_timer(timer_interval, self.timer_callback)
+        # Add parameter validation and application callbacks
+        self.add_on_set_parameters_callback(self.validate_parameters)
+        # Add parameter application callback
+        self.add_post_set_parameters_callback(self.apply_parameters)
+
+    def validate_parameters(self, parameters):
+        """Validate parameter updates before they are committed."""
+        for parameter in parameters:
+            if parameter.name != "timer_interval":
+                continue
+            if parameter.type_ != Parameter.Type.DOUBLE:
+                return SetParametersResult(
+                    successful=False, reason="timer_interval must be a double"
+                )
+            if parameter.value <= 0:
+                return SetParametersResult(
+                    successful=False,
+                    reason="timer_interval must be greater than 0 seconds",
+                )
+
+        return SetParametersResult(successful=True)
+
+    def apply_parameters(self, parameters):
+        """Apply parameter updates after they are committed."""
+        for parameter in parameters:
+            if parameter.name == "timer_interval":
+                self.destroy_timer(self.timer)
+                self.timer = self.create_timer(parameter.value, self.timer_callback)
+                self.get_logger().info(
+                    f"Timer interval changed to {parameter.value} seconds"
+                )
 
     def timer_callback(self):
         """Publish the next news update."""

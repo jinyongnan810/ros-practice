@@ -24,11 +24,23 @@ public:
         log_startup_message();
         // Create a periodic timer to publish messages
         create_periodic_timer(timer_interval);
+        validation_callback_handle_ = this->add_on_set_parameters_callback(
+            [this](const std::vector<rclcpp::Parameter> &parameters)
+            {
+                return validate_parameters(parameters);
+            });
+        parameter_callback_handle_ = this->add_post_set_parameters_callback(
+            [this](const std::vector<rclcpp::Parameter> &parameters)
+            {
+                apply_parameters(parameters);
+            });
     }
 
 private:
     // Timer to periodically publish a message
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr validation_callback_handle_;
+    rclcpp::node_interfaces::PostSetParametersCallbackHandle::SharedPtr parameter_callback_handle_;
     // Publisher to publish messages
     rclcpp::Publisher<custom_interfaces::msg::News>::SharedPtr publisher_ = this->create_publisher<custom_interfaces::msg::News>("news", 10);
     // rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_ = this->create_publisher<std_msgs::msg::String>("news", 10);
@@ -49,6 +61,48 @@ private:
             {
                 publish_periodic_message();
             });
+    }
+
+    rcl_interfaces::msg::SetParametersResult validate_parameters(
+        const std::vector<rclcpp::Parameter> &parameters)
+    {
+        rcl_interfaces::msg::SetParametersResult result;
+        result.successful = true;
+
+        for (const auto &parameter : parameters)
+        {
+            if (parameter.get_name() != "timer_interval")
+            {
+                continue;
+            }
+            if (parameter.get_type() != rclcpp::ParameterType::PARAMETER_DOUBLE)
+            {
+                result.successful = false;
+                result.reason = "timer_interval must be a double";
+                return result;
+            }
+            if (parameter.as_double() <= 0.0)
+            {
+                result.successful = false;
+                result.reason = "timer_interval must be greater than 0 seconds";
+                return result;
+            }
+        }
+        return result;
+    }
+
+    void apply_parameters(const std::vector<rclcpp::Parameter> &parameters)
+    {
+        for (const auto &parameter : parameters)
+        {
+            if (parameter.get_name() == "timer_interval")
+            {
+                const auto timer_interval = parameter.as_double();
+                timer_->cancel();
+                create_periodic_timer(timer_interval);
+                RCLCPP_INFO(this->get_logger(), "Timer interval changed to %.3f seconds", timer_interval);
+            }
+        }
     }
 
     // publish a periodic message

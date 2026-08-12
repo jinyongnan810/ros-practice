@@ -50,6 +50,8 @@ ros2 param list
 ros2 param list /news_station_node
 # check parameter value
 ros2 param get /news_station_node timer_interval
+# change the timer interval at runtime
+ros2 param set /news_station_node timer_interval 0.25
 
 # see node info
 ros2 node info /news_station_node
