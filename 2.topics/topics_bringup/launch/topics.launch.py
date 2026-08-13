@@ -1,5 +1,7 @@
 from launch import LaunchDescription
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
@@ -24,6 +26,21 @@ def generate_launch_description():
                 executable="news_station",
                 name="news_station_cpp_1",
                 parameters=[{"timer_interval": 3.0}],
+                output="screen",
+            ),
+            Node(
+                package="topic_py_pkg",
+                executable="news_station_node",
+                name="news_station_from_config",
+                parameters=[
+                    PathJoinSubstitution(
+                        [
+                            FindPackageShare("topics_bringup"),
+                            "config",
+                            "news_station.yaml",
+                        ]
+                    )
+                ],
                 output="screen",
             ),
             Node(

@@ -9,6 +9,9 @@
   <node pkg="topic_cpp_pkg" exec="news_station" name="news_station_cpp_1" output="screen">
     <param name="timer_interval" value="3.0"/>
   </node>
+  <node pkg="topic_py_pkg" exec="news_station_node" name="news_station_from_config" output="screen">
+    <param from="$(find-pkg-share topics_bringup)/config/news_station.yaml"/>
+  </node>
 
   <node pkg="topic_py_pkg" exec="radio_node" name="radio_py_1" output="screen"/>
   <node pkg="topic_py_pkg" exec="radio_node" name="radio_py_2" output="screen"/>
