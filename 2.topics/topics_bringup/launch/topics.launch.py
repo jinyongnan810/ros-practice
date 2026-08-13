@@ -56,5 +56,21 @@ def generate_launch_description():
                 name="radio_cpp_2",
                 output="screen",
             ),
+            # Remapping example
+            Node(
+                package="topic_cpp_pkg",
+                executable="news_station",
+                name="news_station_cpp_remapped",
+                parameters=[{"timer_interval": 0.5}],
+                remappings=[("news", "remapped_news")],
+                output="screen",
+            ),
+            Node(
+                package="topic_py_pkg",
+                executable="radio_node",
+                name="radio_py_remapped",
+                remappings=[("news", "remapped_news")],
+                output="screen",
+            ),
         ]
     )

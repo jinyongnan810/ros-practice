@@ -15,4 +15,13 @@
   <node pkg="topic_py_pkg" exec="radio_node" name="radio_py_3" output="screen"/>
   <node pkg="topic_cpp_pkg" exec="radio" name="radio_cpp_1" output="screen"/>
   <node pkg="topic_cpp_pkg" exec="radio" name="radio_cpp_2" output="screen"/>
+
+  <!-- Remapping example -->
+  <node pkg="topic_cpp_pkg" exec="news_station" name="news_station_cpp_remapped" output="screen">
+    <param name="timer_interval" value="0.5"/>
+    <remap from="news" to="remapped_news"/>
+  </node>
+  <node pkg="topic_py_pkg" exec="radio_node" name="radio_py_remapped" output="screen">
+    <remap from="news" to="remapped_news"/>
+  </node>
 </launch>
