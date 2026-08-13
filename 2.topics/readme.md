@@ -46,6 +46,8 @@ ros2 run topic_cpp_pkg news_station --ros-args --params-file config/news_station
 ros2 run topic_py_pkg news_station_node --ros-args -r __node:=station1_node
 ros2 run topic_py_pkg radio_node --ros-args -r __node:=radio1_node
 ros2 run topic_py_pkg radio_node --ros-args -r __node:=radio2_node
+# run a single node in a namespace
+ros2 run topic_py_pkg news_station_node --ros-args -r __ns:=/city_c
 
 
 # list running nodes

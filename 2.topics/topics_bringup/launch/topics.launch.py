@@ -11,6 +11,7 @@ def generate_launch_description():
                 package="topic_py_pkg",
                 executable="news_station_node",
                 name="news_station_py_1",
+                namespace="city_a",
                 parameters=[{"timer_interval": 1.0}],
                 output="screen",
             ),
@@ -25,6 +26,7 @@ def generate_launch_description():
                 package="topic_cpp_pkg",
                 executable="news_station",
                 name="news_station_cpp_1",
+                namespace="city_b",
                 parameters=[{"timer_interval": 3.0}],
                 output="screen",
             ),
@@ -47,6 +49,7 @@ def generate_launch_description():
                 package="topic_py_pkg",
                 executable="radio_node",
                 name="radio_py_1",
+                namespace="city_a",
                 output="screen",
             ),
             Node(
@@ -65,6 +68,7 @@ def generate_launch_description():
                 package="topic_cpp_pkg",
                 executable="radio",
                 name="radio_cpp_1",
+                namespace="city_b",
                 output="screen",
             ),
             Node(
