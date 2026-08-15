@@ -28,6 +28,9 @@ ros2 service call /spawn turtlesim/srv/Spawn "{x: 5.5, y: 5.5, theta: 0.0, name:
 ros2 launch chasing_cpp_pkg random_turtle_spawner.launch.xml
 ros2 launch chasing_py_pkg random_turtle_spawner.launch.xml duration:=1.0
 
+# inspect spawned target positions
+ros2 interface show chasing_interfaces/msg/TargetPositions
+ros2 topic echo /spawned_target_positions
 
 
 # check node graph

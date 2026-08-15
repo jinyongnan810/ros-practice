@@ -4,6 +4,8 @@
 #include <random>
 #include <stdexcept>
 
+#include "chasing_interfaces/msg/target.hpp"
+#include "chasing_interfaces/msg/target_positions.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "turtlesim/srv/spawn.hpp"
 
@@ -21,6 +23,9 @@ public:
         }
 
         spawn_client_ = create_client<turtlesim::srv::Spawn>("/spawn");
+        positions_publisher_ =
+            create_publisher<chasing_interfaces::msg::TargetPositions>(
+                "/spawned_target_positions", 10);
         timer_ = create_wall_timer(
             std::chrono::duration<double>(duration),
             std::bind(&RandomTurtleSpawner::spawn_turtle, this));
@@ -55,6 +60,12 @@ private:
             {
                 request_pending_ = false;
                 const auto response = future.get();
+                chasing_interfaces::msg::Target target;
+                target.name = response->name;
+                target.position.x = request->x;
+                target.position.y = request->y;
+                target_positions_.targets.push_back(target);
+                positions_publisher_->publish(target_positions_);
                 RCLCPP_INFO(
                     get_logger(), "Spawned %s at (%.2f, %.2f)", response->name.c_str(), request->x,
                     request->y);
@@ -62,7 +73,9 @@ private:
     }
 
     rclcpp::Client<turtlesim::srv::Spawn>::SharedPtr spawn_client_;
+    rclcpp::Publisher<chasing_interfaces::msg::TargetPositions>::SharedPtr positions_publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
+    chasing_interfaces::msg::TargetPositions target_positions_;
     std::mt19937 random_engine_;
     std::uniform_real_distribution<float> position_distribution_;
     std::uniform_real_distribution<float> angle_distribution_;

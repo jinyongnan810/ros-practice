@@ -8,11 +8,19 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(chasing_interfaces REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(turtlesim REQUIRED)
 
 add_executable(random_turtle_spawner src/random_turtle_spawner.cpp)
-ament_target_dependencies(random_turtle_spawner rclcpp turtlesim)
+ament_target_dependencies(
+  random_turtle_spawner
+  chasing_interfaces
+  geometry_msgs
+  rclcpp
+  turtlesim
+)
 install(TARGETS
   random_turtle_spawner
   DESTINATION lib/${PROJECT_NAME}

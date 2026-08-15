@@ -3,8 +3,11 @@ import math
 import random
 
 import rclpy
+from geometry_msgs.msg import Point
 from rclpy.node import Node
 from turtlesim.srv import Spawn
+
+from chasing_interfaces.msg import Target, TargetPositions
 
 
 class RandomTurtleSpawner(Node):
@@ -16,6 +19,10 @@ class RandomTurtleSpawner(Node):
             raise ValueError("duration must be greater than zero")
 
         self.spawn_client = self.create_client(Spawn, "/spawn")
+        self.positions_publisher = self.create_publisher(
+            TargetPositions, "/spawned_target_positions", 10
+        )
+        self.target_positions = TargetPositions()
         self.request_pending = False
         self.timer = self.create_timer(duration, self.spawn_turtle)
         self.get_logger().info(f"Spawning a random turtle every {duration:.2f} seconds")
@@ -48,6 +55,12 @@ class RandomTurtleSpawner(Node):
             self.get_logger().error(f"Spawn request failed: {error}")
             return
 
+        target = Target(
+            name=response.name,
+            position=Point(x=float(request.x), y=float(request.y)),
+        )
+        self.target_positions.targets.append(target)
+        self.positions_publisher.publish(self.target_positions)
         self.get_logger().info(
             f"Spawned {response.name} at ({request.x:.2f}, {request.y:.2f})"
         )
