@@ -28,6 +28,7 @@ setup(
     entry_points={
         "console_scripts": [
             "random_turtle_spawner = chasing_py_pkg.random_turtle_spawner:main",
+            "turtle_chaser = chasing_py_pkg.turtle_chaser:main",
         ],
     },
 )

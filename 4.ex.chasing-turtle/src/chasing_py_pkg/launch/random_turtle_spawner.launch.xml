@@ -9,4 +9,5 @@
   <node pkg="chasing_py_pkg" exec="random_turtle_spawner">
     <param name="duration" value="$(var duration)" />
   </node>
+  <node pkg="chasing_py_pkg" exec="turtle_chaser" />
 </launch>

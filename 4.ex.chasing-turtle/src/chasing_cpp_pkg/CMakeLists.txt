@@ -14,6 +14,7 @@ find_package(rclcpp REQUIRED)
 find_package(turtlesim REQUIRED)
 
 add_executable(random_turtle_spawner src/random_turtle_spawner.cpp)
+add_executable(turtle_chaser src/turtle_chaser.cpp)
 ament_target_dependencies(
   random_turtle_spawner
   chasing_interfaces
@@ -21,8 +22,16 @@ ament_target_dependencies(
   rclcpp
   turtlesim
 )
+ament_target_dependencies(
+  turtle_chaser
+  chasing_interfaces
+  geometry_msgs
+  rclcpp
+  turtlesim
+)
 install(TARGETS
   random_turtle_spawner
+  turtle_chaser
   DESTINATION lib/${PROJECT_NAME}
 )
 
