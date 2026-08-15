@@ -11,6 +11,10 @@
         {
             "name": "3.services",
             "path": "3.services"
+        },
+        {
+            "name": "4.ex.chasing-turtle",
+            "path": "4.ex.chasing-turtle"
         }
     ],
     "settings": {
