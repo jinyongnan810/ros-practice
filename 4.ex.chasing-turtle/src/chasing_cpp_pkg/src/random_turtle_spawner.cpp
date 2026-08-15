@@ -14,6 +14,7 @@
 #include "turtlesim/srv/kill.hpp"
 #include "turtlesim/srv/spawn.hpp"
 
+// Spawns target turtles and removes them when turtle1 reaches them.
 class RandomTurtleSpawner : public rclcpp::Node
 {
 public:
@@ -21,12 +22,14 @@ public:
         : Node("random_turtle_spawner"), random_engine_(std::random_device{}()),
           position_distribution_(1.0F, 10.0F), angle_distribution_(0.0F, 6.2831853F)
     {
+        // Configure how often the timer requests a new target.
         const auto duration = declare_parameter<double>("duration", 2.0);
         if (duration <= 0.0)
         {
             throw std::invalid_argument("duration must be greater than zero");
         }
 
+        // Connect this node to turtlesim and expose the shared target registry.
         spawn_client_ = create_client<turtlesim::srv::Spawn>("/spawn");
         kill_client_ = create_client<turtlesim::srv::Kill>("/kill");
         positions_publisher_ =
@@ -43,6 +46,7 @@ public:
     }
 
 private:
+    // Send one asynchronous request with a random pose.
     void spawn_turtle()
     {
         if (!spawn_client_->service_is_ready())
@@ -53,6 +57,7 @@ private:
 
         if (request_pending_)
         {
+            // Keep at most one asynchronous spawn request in flight.
             RCLCPP_WARN(get_logger(), "Previous spawn request is still pending");
             return;
         }
@@ -67,6 +72,7 @@ private:
             request,
             [this, request](rclcpp::Client<turtlesim::srv::Spawn>::SharedFuture future)
             {
+                // Record the target only after turtlesim confirms its creation.
                 request_pending_ = false;
                 const auto response = future.get();
                 chasing_interfaces::msg::Target target;
@@ -74,6 +80,7 @@ private:
                 target.position.x = request->x;
                 target.position.y = request->y;
                 target_positions_.targets.push_back(target);
+                // Publish only targets that turtlesim confirmed it spawned.
                 positions_publisher_->publish(target_positions_);
                 RCLCPP_INFO(
                     get_logger(), "Spawned %s at (%.2f, %.2f)", response->name.c_str(), request->x,
@@ -81,6 +88,7 @@ private:
             });
     }
 
+    // Request removal for every target reached by turtle1.
     void handle_pose(const turtlesim::msg::Pose::SharedPtr pose)
     {
         if (!kill_client_->service_is_ready())
@@ -92,6 +100,7 @@ private:
         {
             const auto delta_x = pose->x - target.position.x;
             const auto delta_y = pose->y - target.position.y;
+            // Compare squared distance and suppress duplicate asynchronous kills.
             if (delta_x * delta_x + delta_y * delta_y > 0.2 * 0.2 ||
                 pending_kills_.count(target.name) > 0)
             {
@@ -118,6 +127,7 @@ private:
                         return;
                     }
 
+                    // Publish a fresh registry after turtlesim confirms the kill.
                     pending_kills_.erase(name);
                     auto &targets = target_positions_.targets;
                     targets.erase(

@@ -9,11 +9,13 @@
 #include "rclcpp/rclcpp.hpp"
 #include "turtlesim/msg/pose.hpp"
 
+// Drives turtle1 toward one selected target at a time.
 class TurtleChaser : public rclcpp::Node
 {
 public:
     TurtleChaser() : Node("turtle_chaser")
     {
+        // Inputs provide target state and turtle pose; output controls turtle motion.
         target_subscription_ = create_subscription<chasing_interfaces::msg::TargetPositions>(
             "/spawned_target_positions", 10,
             [this](const chasing_interfaces::msg::TargetPositions::SharedPtr message)
@@ -25,6 +27,7 @@ public:
     }
 
 private:
+    // Select a target if needed and publish the next velocity command.
     void handle_pose(const turtlesim::msg::Pose::SharedPtr pose)
     {
         geometry_msgs::msg::Twist command;
@@ -40,6 +43,7 @@ private:
             [this](const auto &target)
             { return target.name == selected_target_name_; });
 
+        // Keep chasing the selected name; choose again only after it disappears.
         if (selected_target == target_positions_.targets.end())
         {
             selected_target = std::min_element(
@@ -60,10 +64,12 @@ private:
         const auto delta_y = selected_target->position.y - pose->y;
         const auto distance = std::hypot(delta_x, delta_y);
         const auto desired_heading = std::atan2(delta_y, delta_x);
+        // Normalize the turn error to [-pi, pi] so the turtle takes the short turn.
         const auto heading_error = std::atan2(
             std::sin(desired_heading - pose->theta), std::cos(desired_heading - pose->theta));
 
         command.angular.z = 4.0 * heading_error;
+        // Rotate first when badly misaligned, then advance with capped proportional speed.
         if (std::abs(heading_error) < 0.5)
         {
             command.linear.x = std::min(2.0, 1.5 * distance);

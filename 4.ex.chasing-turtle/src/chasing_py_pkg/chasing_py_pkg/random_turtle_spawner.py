@@ -12,13 +12,17 @@ from chasing_interfaces.msg import Target, TargetPositions
 
 
 class RandomTurtleSpawner(Node):
+    """Spawn target turtles and remove them when turtle1 reaches them."""
+
     def __init__(self):
         super().__init__("random_turtle_spawner")
 
+        # Configure how often the timer requests a new target.
         duration = self.declare_parameter("duration", 2.0).value
         if duration <= 0.0:
             raise ValueError("duration must be greater than zero")
 
+        # Connect this node to turtlesim and expose the shared target registry.
         self.spawn_client = self.create_client(Spawn, "/spawn")
         self.kill_client = self.create_client(Kill, "/kill")
         self.positions_publisher = self.create_publisher(
@@ -34,11 +38,13 @@ class RandomTurtleSpawner(Node):
         self.get_logger().info(f"Spawning a random turtle every {duration:.2f} seconds")
 
     def spawn_turtle(self):
+        """Send one asynchronous request with a random pose."""
         if not self.spawn_client.service_is_ready():
             self.get_logger().warning("/spawn service is not available yet")
             return
 
         if self.request_pending:
+            # Keep at most one asynchronous spawn request in flight.
             self.get_logger().warning("Previous spawn request is still pending")
             return
 
@@ -54,6 +60,7 @@ class RandomTurtleSpawner(Node):
         )
 
     def spawn_finished(self, future, request):
+        """Record and publish a target after turtlesim confirms its creation."""
         self.request_pending = False
         try:
             response = future.result()
@@ -66,18 +73,21 @@ class RandomTurtleSpawner(Node):
             position=Point(x=float(request.x), y=float(request.y)),
         )
         self.target_positions.targets.append(target)
+        # Publish only targets that turtlesim confirmed it spawned.
         self.positions_publisher.publish(self.target_positions)
         self.get_logger().info(
             f"Spawned {response.name} at ({request.x:.2f}, {request.y:.2f})"
         )
 
     def handle_pose(self, pose):
+        """Request removal for every target reached by turtle1."""
         if not self.kill_client.service_is_ready():
             return
 
         for target in self.target_positions.targets:
             delta_x = pose.x - target.position.x
             delta_y = pose.y - target.position.y
+            # Use squared distance and suppress duplicate asynchronous kills.
             if delta_x * delta_x + delta_y * delta_y > 0.2**2:
                 continue
             if target.name in self.pending_kills:
@@ -93,6 +103,7 @@ class RandomTurtleSpawner(Node):
             )
 
     def kill_finished(self, future, name):
+        """Remove a killed target from the registry and publish the new list."""
         try:
             future.result()
         except Exception as error:  # noqa: BLE001
@@ -109,6 +120,7 @@ class RandomTurtleSpawner(Node):
 
 
 def main(args=None):
+    """Run the node until ROS shuts down."""
     rclpy.init(args=args)
     node = RandomTurtleSpawner()
     try:
