@@ -9,15 +9,17 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(turtlesim REQUIRED)
 
-add_executable(acc_server src/acc_server.cpp)
-add_executable(acc_client src/acc_client.cpp)
-ament_target_dependencies(acc_server rclcpp)
-ament_target_dependencies(acc_client rclcpp)
+add_executable(random_turtle_spawner src/random_turtle_spawner.cpp)
+ament_target_dependencies(random_turtle_spawner rclcpp turtlesim)
 install(TARGETS
-  acc_server
-  acc_client
+  random_turtle_spawner
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

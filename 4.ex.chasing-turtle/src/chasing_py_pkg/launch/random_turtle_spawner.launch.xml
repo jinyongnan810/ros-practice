@@ -1,0 +1,12 @@
+<launch>
+  <arg
+    name="duration"
+    default="2.0"
+    description="Seconds between turtle spawn requests"
+  />
+
+  <node pkg="turtlesim" exec="turtlesim_node" />
+  <node pkg="chasing_py_pkg" exec="random_turtle_spawner">
+    <param name="duration" value="$(var duration)" />
+  </node>
+</launch>
