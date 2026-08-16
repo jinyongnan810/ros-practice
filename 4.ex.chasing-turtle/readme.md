@@ -94,7 +94,7 @@ The straight-line distance and desired heading are
 
 $$
 d = \sqrt{\Delta x^2 + \Delta y^2}, \qquad
-	heta_d = \operatorname{atan2}(\Delta y, \Delta x).
+	\theta_d = \operatorname{atan2}(\Delta y, \Delta x).
 $$
 
 A direct subtraction $\theta_d - \theta$ can fall outside the useful angle range.
@@ -105,6 +105,10 @@ $$
 e_\theta = \operatorname{atan2}
 \left(\sin(\theta_d - \theta),\ \cos(\theta_d - \theta)\right).
 $$
+
+
+> [!NOTE]
+> `math.atan2(math.sin(Δθ), math.cos(Δθ))` is a common and robust way to project the raw angle difference $\Delta\theta$ onto the 2D unit circle $(x, y)$ and extract the principal angle in the range $(-\pi, \pi]$, automatically discarding full rotations and ensuring the controller always chooses the shortest turn direction.
 
 ### Velocity controller
 
