@@ -44,6 +44,7 @@ private:
             { return target.name == selected_target_name_; });
 
         // Keep chasing the selected name; choose again only after it disappears.
+        // .end() means the name was not found, so pick the closest target.
         if (selected_target == target_positions_.targets.end())
         {
             selected_target = std::min_element(
