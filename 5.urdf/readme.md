@@ -1,5 +1,5 @@
 # URDF
-- URDF is a XML format for representing a robot model.
+- URDF (Unified Robot Description Format) is an XML format for representing a robot model.
 
 ### RViz
 - tf is published by nodes, and can be visualized in rviz. tf is used to transform data between different coordinate frames. It answers:
@@ -16,10 +16,15 @@ sudo apt install ros-jazzy-urdf-tutorial
 cd /opt/ros/jazzy/share
 # go to urdf_tutorial package
 cd urdf_tutorial/urdf
-# launch the robot model
+# launch the demo robot model
 ros2 launch urdf_tutorial display.launch.py model:=/opt/ros/jazzy/share/urdf_tutorial/urdf/08-macroed.urdf.xacro
+# launch own robot model
+ros2 launch urdf_tutorial display.launch.py model:=/home/kin/shared/shared/ros-practice/5.urdf/two_wheel_car.urdf
 
 # check tf trees hierarchy
 ros2 run tf2_tools view_frames
 open frames_2026-08-19_07.55.13.pdf
 ```
+
+### Tips
+- To make vscode syntax highlight for urdf files, open settings -> file associations -> add *.urdf and select XML.

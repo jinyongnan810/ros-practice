@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot name="two_wheel_car">
+    <!-- Define materials used in the robot -->
+    <material name="blue">
+        <color rgba="0 0 0.6 1" />
+    </material>
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <!-- Length, width, height(in meters) -->
+                <box size="0.6 0.4 0.2" />
+            </geometry>
+            <!-- rpy means roll(rotation on x), pitch(rotation on y), yaw(rotation on z) -->
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <!-- Apply the blue material defined above -->
+            <material name="blue" />
+        </visual>
+    </link>
+</robot>

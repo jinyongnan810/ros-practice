@@ -15,6 +15,10 @@
         {
             "name": "4.ex.chasing-turtle",
             "path": "4.ex.chasing-turtle"
+        },
+        {
+            "name": "5.urdf",
+            "path": "5.urdf"
         }
     ],
     "settings": {
