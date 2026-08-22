@@ -29,6 +29,9 @@
 
 ### Commands
 ```bash
+# auto source
+direnv allow
+
 # install urdf-tutorial
 sudo apt install ros-jazzy-urdf-tutorial
 # find all the packages installed
@@ -39,10 +42,59 @@ cd urdf_tutorial/urdf
 ros2 launch urdf_tutorial display.launch.py model:=/opt/ros/jazzy/share/urdf_tutorial/urdf/08-macroed.urdf.xacro
 # launch own robot model
 ros2 launch urdf_tutorial display.launch.py model:=/home/kin/shared/shared/ros-practice/5.urdf/simple_car.urdf
+# get the urdf from /robot_description parameter
+ros2 param get /robot_state_publisher robot_description
+# get the joint states from /joint_states topic
+ros2 topic echo /joint_states
+
+# create package to include urdf files
+ros2 pkg create simple_car_description
+
+# run with robot_state_publisher and joint_state_publisher_gui
+xacro simple_car.urdf -o /tmp/robot.urdf
+ros2 run robot_state_publisher robot_state_publisher /tmp/robot.urdf
+ros2 run joint_state_publisher_gui joint_state_publisher_gui
+ros2 run rviz2 rviz2
 
 # check tf trees hierarchy
 ros2 run tf2_tools view_frames
 open frames_2026-08-19_07.55.13.pdf
+```
+
+### Launching this robot
+This workspace already includes a small URDF package under `src/simple_car_description` with a model file and launch files.
+
+```bash
+cd /home/kin/shared/shared/ros-practice/5.urdf
+source /opt/ros/jazzy/setup.bash
+colcon build --packages-select simple_car_description
+source install/setup.bash
+
+# Python launch file
+ros2 launch simple_car_description display.launch.py model:=$(pwd)/src/simple_car_description/urdf/simple_car.urdf
+
+# XML launch file
+ros2 launch simple_car_description display.launch.xml model:=$(pwd)/src/simple_car_description/urdf/simple_car.urdf
+```
+
+The launch file starts:
+- `robot_state_publisher` to publish TF from the URDF
+- `joint_state_publisher_gui` to move the joints interactively
+- `rviz2` for visualization
+
+### Package layout
+```text
+5.urdf/
+├── simple_car.urdf
+└── src/
+    └── simple_car_description/
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── launch/
+        │   ├── display.launch.py
+        │   └── display.launch.xml
+        └── urdf/
+            └── simple_car.urdf
 ```
 
 ### Tips
