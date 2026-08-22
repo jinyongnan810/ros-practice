@@ -54,7 +54,7 @@ ros2 pkg create simple_car_description
 xacro simple_car.urdf -o /tmp/robot.urdf
 ros2 run robot_state_publisher robot_state_publisher /tmp/robot.urdf
 ros2 run joint_state_publisher_gui joint_state_publisher_gui
-ros2 run rviz2 rviz2
+ros2 run rviz2 rviz2 -d src/simple_car_description/rviz/display.rviz
 
 # check tf trees hierarchy
 ros2 run tf2_tools view_frames
