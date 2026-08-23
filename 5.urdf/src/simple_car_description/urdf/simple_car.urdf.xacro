@@ -2,6 +2,7 @@
 <robot name="two_wheel_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="simple_car.materials.xacro" />
     <xacro:include filename="simple_car.properties.xacro" />
+    <xacro:include filename="simple_car.inertias.xacro" />
     <xacro:include filename="simple_car.wheel.xacro" />
 
     <!-- ====================== Links ====================== -->
@@ -22,6 +23,9 @@
             </geometry>
             <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0" />
         </collision>
+        <xacro:inertial_box mass="${base_mass}" x="${base_length}" y="${base_width}" z="${base_height}">
+            <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0" />
+        </xacro:inertial_box>
     </link>
 
     <!-- Drive wheels: cylinders are rotated so their axles align with the Y-axis. -->
@@ -44,6 +48,15 @@
             <origin xyz="0 0 ${top_wheel_height / 2}" rpy="0 0 0" />
             <material name="gray" />
         </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${top_wheel_radius}" length="${top_wheel_height}" />
+            </geometry>
+            <origin xyz="0 0 ${top_wheel_height / 2}" rpy="0 0 0" />
+        </collision>
+        <xacro:inertial_cylinder mass="${top_wheel_mass}" radius="${top_wheel_radius}" length="${top_wheel_height}">
+            <origin xyz="0 0 ${top_wheel_height / 2}" rpy="0 0 0" />
+        </xacro:inertial_cylinder>
     </link>
 
     <link name="box_on_top_wheel_link">
@@ -55,6 +68,15 @@
             <origin xyz="0 0 ${top_box_height / 2}" rpy="0 0 0" />
             <material name="blue" />
         </visual>
+        <collision>
+            <geometry>
+                <box size="${top_box_length} ${top_box_width} ${top_box_height}" />
+            </geometry>
+            <origin xyz="0 0 ${top_box_height / 2}" rpy="0 0 0" />
+        </collision>
+        <xacro:inertial_box mass="${top_box_mass}" x="${top_box_length}" y="${top_box_width}" z="${top_box_height}">
+            <origin xyz="0 0 ${top_box_height / 2}" rpy="0 0 0" />
+        </xacro:inertial_box>
     </link>
 
     <!-- ===================== Joints ====================== -->

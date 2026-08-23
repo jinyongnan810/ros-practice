@@ -9,9 +9,27 @@
 - yellow pink arrow: A is child of B. if parent frame B moves, child frame A moves with it.
 
 ### Components
-- `links` are rigid bodies of the robot. They are connected by joints. Links can be visualized in rviz as a 3D model.
+- `links` are rigid bodies of the robot. They are connected by joints. Each link typically contains:
+  - `<visual>`: Defines the 3D graphical appearance (geometry, material/color, meshes). Visualized in RViz and Gazebo.
+  - `<collision>`: Defines the simplified boundary geometry used by physics engines for collision detection.
+  - `<inertial>`: Defines the mass and mass distribution of the link. **Required for physics simulation in Gazebo**. Links without inertial properties are treated as static or ignored by physics engines.
+    - `<mass value="..."/>`: Total mass in kilograms ($kg$).
+    - `<origin xyz="..." rpy="..."/>`: Position and orientation of the **Center of Mass (COM)** relative to the link coordinate frame.
+    - `<inertia ixx="..." ixy="..." ixz="..." iyy="..." iyz="..." izz="..."/>`: 3x3 symmetric moment of inertia matrix (in $kg \cdot m^2$), measuring resistance to rotational acceleration around principal axes.
 - `materials` are used to color the links. They can be defined in the urdf file or in a separate material file.
 - `joints` are used to connect links. They can be of different types: revolute, continuous, prismatic, fixed, floating, planar. Joints can be visualized in rviz as arrows.
+
+#### Inertia Formulas for Common Geometries
+- **Solid Box** (dimensions $x, y, z$, mass $m$):
+  $$I_{xx} = \frac{1}{12} m (y^2 + z^2), \quad I_{yy} = \frac{1}{12} m (x^2 + z^2), \quad I_{zz} = \frac{1}{12} m (x^2 + y^2)$$
+- **Solid Cylinder** (radius $r$, length $h$ along $z$-axis, mass $m$):
+  $$I_{xx} = I_{yy} = \frac{1}{12} m (3r^2 + h^2), \quad I_{zz} = \frac{1}{2} m r^2$$
+- **Solid Sphere** (radius $r$, mass $m$):
+  $$I_{xx} = I_{yy} = I_{zz} = \frac{2}{5} m r^2$$
+
+- More in this: https://en.wikipedia.org/wiki/List_of_moments_of_inertia#List_of_3D_inertia_tensors
+
+> **Note on Inertia Visualization**: In Gazebo and RViz, the inertia tensor is visualized as an *equivalent uniform inertia box*. For cylinders with radial symmetry ($I_{xx} = I_{yy}$), this equivalent box has a square cross-section ($\sqrt{3}r \times \sqrt{3}r$) along the circular face.
 
 #### Setting origins
 - First set origin of the joint, then set origin of the link. 
@@ -100,10 +118,32 @@ The launch file starts:
         ├── launch/
         │   ├── display.launch.py
         │   └── display.launch.xml
+        ├── meshes/
+        │   └── visual/
+        │       └── waffle_base.stl
         └── urdf/
-          ├── simple_car.urdf
-          └── simple_car.urdf.xacro
+            ├── simple_car.inertias.xacro
+            ├── simple_car.materials.xacro
+            ├── simple_car.properties.xacro
+            ├── simple_car.urdf
+            ├── simple_car.urdf.xacro
+            └── simple_car.wheel.xacro
 ```
 
 ### Tips
 - To make vscode syntax highlight for urdf files, open settings -> file associations -> add *.urdf and select XML.
+
+
+
+# Gazebo
+
+## Commands
+```bash
+# install gazebo
+sudo apt install ros-jazzy-ros-gz
+# start gazebo
+gz sim
+
+# check gazebo topics
+gz topic -l
+```

@@ -11,16 +11,26 @@
     <color rgba="0.5 0.5 0.5 1"/>
   </material>
   <!-- ====================== Links ====================== -->
-  <!-- Chassis: 0.6 m long (X), 0.4 m wide (Y), and 0.2 m high (Z). -->
+  <!-- Chassis visual uses an Apache-2.0 TurtleBot3 Waffle base mesh. -->
   <link name="base_link">
     <visual>
       <geometry>
-        <box size="0.6 0.4 0.2"/>
+        <mesh filename="package://simple_car_description/meshes/visual/waffle_base.stl" scale="0.002 0.00143 0.00125"/>
       </geometry>
-      <!-- Raise the visual by half its height so the link frame is at ground level. -->
-      <origin rpy="0 0 0" xyz="0 0 0.1"/>
+      <origin rpy="0 0 0" xyz="0 0 0.05"/>
       <material name="blue"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.6 0.4 0.2"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.1"/>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1"/>
+      <mass value="5.0"/>
+      <inertia ixx="0.08333333333333333" ixy="0.0" ixz="0.0" iyy="0.16666666666666666" iyz="0.0" izz="0.21666666666666667"/>
+    </inertial>
   </link>
   <link name="front_left_wheel_link">
     <visual>
@@ -30,6 +40,17 @@
       <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
       <material name="gray"/>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.1"/>
+      </geometry>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+    </collision>
+    <inertial>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0013541666666666667" ixy="0.0" ixz="0.0" iyy="0.0013541666666666667" iyz="0.0" izz="0.0025"/>
+    </inertial>
   </link>
   <joint name="front_left_wheel_joint" type="continuous">
     <parent link="base_link"/>
@@ -45,6 +66,17 @@
       <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
       <material name="gray"/>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.1"/>
+      </geometry>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+    </collision>
+    <inertial>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0013541666666666667" ixy="0.0" ixz="0.0" iyy="0.0013541666666666667" iyz="0.0" izz="0.0025"/>
+    </inertial>
   </link>
   <joint name="front_right_wheel_joint" type="continuous">
     <parent link="base_link"/>
@@ -60,6 +92,17 @@
       <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
       <material name="gray"/>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.1"/>
+      </geometry>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+    </collision>
+    <inertial>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0013541666666666667" ixy="0.0" ixz="0.0" iyy="0.0013541666666666667" iyz="0.0" izz="0.0025"/>
+    </inertial>
   </link>
   <joint name="rear_left_wheel_joint" type="continuous">
     <parent link="base_link"/>
@@ -75,6 +118,17 @@
       <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
       <material name="gray"/>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.1"/>
+      </geometry>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+    </collision>
+    <inertial>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0013541666666666667" ixy="0.0" ixz="0.0" iyy="0.0013541666666666667" iyz="0.0" izz="0.0025"/>
+    </inertial>
   </link>
   <joint name="rear_right_wheel_joint" type="continuous">
     <parent link="base_link"/>
@@ -92,6 +146,17 @@
       <origin rpy="0 0 0" xyz="0 0 0.025"/>
       <material name="gray"/>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.05" radius="0.1"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.025"/>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.025"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0013541666666666667" ixy="0.0" ixz="0.0" iyy="0.0013541666666666667" iyz="0.0" izz="0.0025"/>
+    </inertial>
   </link>
   <link name="box_on_top_wheel_link">
     <visual>
@@ -102,6 +167,17 @@
       <origin rpy="0 0 0" xyz="0 0 0.1"/>
       <material name="blue"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.2 0.2"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.1"/>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.1"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0033333333333333335" ixy="0.0" ixz="0.0" iyy="0.0033333333333333335" iyz="0.0" izz="0.0033333333333333335"/>
+    </inertial>
   </link>
   <!-- ===================== Joints ====================== -->
   <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
