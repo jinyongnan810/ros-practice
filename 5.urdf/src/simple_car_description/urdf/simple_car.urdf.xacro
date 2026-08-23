@@ -6,16 +6,22 @@
 
     <!-- ====================== Links ====================== -->
 
-    <!-- Chassis: 0.6 m long (X), 0.4 m wide (Y), and 0.2 m high (Z). -->
+    <!-- Chassis visual uses an Apache-2.0 TurtleBot3 Waffle base mesh. -->
     <link name="base_link">
         <visual>
             <geometry>
-                <box size="${base_length} ${base_width} ${base_height}" />
+                <mesh filename="package://simple_car_description/meshes/visual/waffle_base.stl"
+                    scale="${base_mesh_scale_x} ${base_mesh_scale_y} ${base_mesh_scale_z}" />
             </geometry>
-            <!-- Raise the visual by half its height so the link frame is at ground level. -->
-            <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0" />
+            <origin xyz="0 0 ${base_mesh_z_offset}" rpy="0 0 0" />
             <material name="blue" />
         </visual>
+        <collision>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}" />
+            </geometry>
+            <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0" />
+        </collision>
     </link>
 
     <!-- Drive wheels: cylinders are rotated so their axles align with the Y-axis. -->

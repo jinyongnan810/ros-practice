@@ -3,6 +3,10 @@
     <xacro:property name="base_length" value="0.6" />
     <xacro:property name="base_width" value="0.4" />
     <xacro:property name="base_height" value="0.2" />
+    <xacro:property name="base_mesh_scale_x" value="0.002" />
+    <xacro:property name="base_mesh_scale_y" value="0.00143" />
+    <xacro:property name="base_mesh_scale_z" value="0.00125" />
+    <xacro:property name="base_mesh_z_offset" value="0.05" />
 
     <xacro:property name="wheel_radius" value="0.1" />
     <xacro:property name="wheel_width" value="0.05" />
