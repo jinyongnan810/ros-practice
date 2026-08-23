@@ -23,6 +23,27 @@
     <xacro:property name="top_box_width" value="0.2" />
     <xacro:property name="top_box_height" value="0.2" />
 
+    <!-- ===================== Macros ====================== -->
+
+    <xacro:macro name="wheel" params="name x y">
+        <link name="${name}_wheel_link">
+            <visual>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+                </geometry>
+                <origin xyz="0 0 0" rpy="${pi / 2} 0 0" />
+                <material name="gray" />
+            </visual>
+        </link>
+
+        <joint name="${name}_wheel_joint" type="continuous">
+            <parent link="base_link" />
+            <child link="${name}_wheel_link" />
+            <origin xyz="${x} ${y} ${wheel_radius}" rpy="0 0 0" />
+            <axis xyz="0 1 0" />
+        </joint>
+    </xacro:macro>
+
     <!-- ====================== Links ====================== -->
 
     <!-- Chassis: 0.6 m long (X), 0.4 m wide (Y), and 0.2 m high (Z). -->
@@ -38,45 +59,14 @@
     </link>
 
     <!-- Drive wheels: cylinders are rotated so their axles align with the Y-axis. -->
-    <link name="front_left_wheel_link">
-        <visual>
-            <geometry>
-                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
-            </geometry>
-            <origin xyz="0 0 0" rpy="1.5708 0 0" />
-            <material name="gray" />
-        </visual>
-    </link>
-
-    <link name="front_right_wheel_link">
-        <visual>
-            <geometry>
-                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
-            </geometry>
-            <origin xyz="0 0 0" rpy="1.5708 0 0" />
-            <material name="gray" />
-        </visual>
-    </link>
-
-    <link name="rear_left_wheel_link">
-        <visual>
-            <geometry>
-                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
-            </geometry>
-            <origin xyz="0 0 0" rpy="1.5708 0 0" />
-            <material name="gray" />
-        </visual>
-    </link>
-
-    <link name="rear_right_wheel_link">
-        <visual>
-            <geometry>
-                <cylinder radius="${wheel_radius}" length="${wheel_width}" />
-            </geometry>
-            <origin xyz="0 0 0" rpy="1.5708 0 0" />
-            <material name="gray" />
-        </visual>
-    </link>
+    <xacro:wheel name="front_left" x="${wheel_x_offset}"
+        y="${base_width / 2 + wheel_width / 2}" />
+    <xacro:wheel name="front_right" x="${wheel_x_offset}"
+        y="${-(base_width / 2 + wheel_width / 2)}" />
+    <xacro:wheel name="rear_left" x="${-wheel_x_offset}"
+        y="${base_width / 2 + wheel_width / 2}" />
+    <xacro:wheel name="rear_right" x="${-wheel_x_offset}"
+        y="${-(base_width / 2 + wheel_width / 2)}" />
 
     <!-- Upper rotating platform and its mounted box. -->
     <link name="top_wheel_link">
@@ -102,39 +92,6 @@
     </link>
 
     <!-- ===================== Joints ====================== -->
-
-    <!-- Wheel axles: X selects front/rear, Y selects left/right, and Z is wheel radius. -->
-    <joint name="front_left_wheel_joint" type="continuous">
-        <parent link="base_link" />
-        <child link="front_left_wheel_link" />
-        <origin xyz="${wheel_x_offset} ${base_width / 2 + wheel_width / 2} ${wheel_radius}"
-            rpy="0 0 0" />
-        <axis xyz="0 1 0" />
-    </joint>
-
-    <joint name="front_right_wheel_joint" type="continuous">
-        <parent link="base_link" />
-        <child link="front_right_wheel_link" />
-        <origin xyz="${wheel_x_offset} ${-(base_width / 2 + wheel_width / 2)} ${wheel_radius}"
-            rpy="0 0 0" />
-        <axis xyz="0 1 0" />
-    </joint>
-
-    <joint name="rear_left_wheel_joint" type="continuous">
-        <parent link="base_link" />
-        <child link="rear_left_wheel_link" />
-        <origin xyz="${-wheel_x_offset} ${base_width / 2 + wheel_width / 2} ${wheel_radius}"
-            rpy="0 0 0" />
-        <axis xyz="0 1 0" />
-    </joint>
-
-    <joint name="rear_right_wheel_joint" type="continuous">
-        <parent link="base_link" />
-        <child link="rear_right_wheel_link" />
-        <origin xyz="${-wheel_x_offset} ${-(base_width / 2 + wheel_width / 2)} ${wheel_radius}"
-            rpy="0 0 0" />
-        <axis xyz="0 1 0" />
-    </joint>
 
     <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
     <joint name="wheel_joint" type="revolute">
