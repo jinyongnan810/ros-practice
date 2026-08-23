@@ -9,7 +9,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     model_arg = DeclareLaunchArgument(
         "model",
-        default_value="$(find simple_car_description)/urdf/simple_car.urdf",
+        default_value="$(find simple_car_description)/urdf/simple_car.urdf.xacro",
         description="Absolute or package-relative path to the URDF file.",
     )
     rvizconfig_arg = DeclareLaunchArgument(

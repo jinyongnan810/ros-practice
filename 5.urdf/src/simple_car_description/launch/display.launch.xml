@@ -1,5 +1,5 @@
 <launch>
-    <arg name="model" default="$(find-pkg-share simple_car_description)/urdf/simple_car.urdf" />
+    <arg name="model" default="$(find-pkg-share simple_car_description)/urdf/simple_car.urdf.xacro" />
     <arg name="rvizconfig" default="$(find-pkg-share simple_car_description)/rviz/display.rviz" />
 
     <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">

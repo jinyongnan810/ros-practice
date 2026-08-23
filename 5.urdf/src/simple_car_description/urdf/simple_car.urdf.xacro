@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<robot name="two_wheel_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- ==================== Materials ==================== -->
+
+    <material name="blue">
+        <color rgba="0.6 0.2 0.6 1" />
+    </material>
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1" />
+    </material>
+
+    <!-- ====================== Links ====================== -->
+
+    <!-- Chassis: 0.6 m long (X), 0.4 m wide (Y), and 0.2 m high (Z). -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.6 0.4 0.2" />
+            </geometry>
+            <!-- Raise the visual by half its height so the link frame is at ground level. -->
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <!-- Drive wheels: cylinders are rotated so their axles align with the Y-axis. -->
+    <link name="front_left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5708 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="front_right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5708 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="rear_left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5708 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="rear_right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5708 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <!-- Upper rotating platform and its mounted box. -->
+    <link name="top_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="0.1" length="0.05" />
+            </geometry>
+            <!-- Raise the cylinder by half its length above the joint frame. -->
+            <origin xyz="0 0 0.025" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+    </link>
+
+    <link name="box_on_top_wheel_link">
+        <visual>
+            <geometry>
+                <box size="0.2 0.2 0.2" />
+            </geometry>
+            <!-- Raise the box by half its height above its link frame. -->
+            <origin xyz="0 0 0.1" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+    </link>
+
+    <!-- ===================== Joints ====================== -->
+
+    <!-- Wheel axles: X selects front/rear, Y selects left/right, and Z is wheel radius. -->
+    <joint name="front_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="front_left_wheel_link" />
+        <origin xyz="0.2 0.225 0.1" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="front_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="front_right_wheel_link" />
+        <origin xyz="0.2 -0.225 0.1" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="rear_left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="rear_left_wheel_link" />
+        <origin xyz="-0.2 0.225 0.1" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <joint name="rear_right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="rear_right_wheel_link" />
+        <origin xyz="-0.2 -0.225 0.1" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
+    <joint name="wheel_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="top_wheel_link" />
+        <!-- Place the platform joint on the top surface of the chassis. -->
+        <origin xyz="0 0 0.2" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+        <limit effort="100" velocity="10" lower="-1.57" upper="1.57" />
+    </joint>
+
+    <joint name="box_on_wheel_joint" type="fixed">
+        <parent link="top_wheel_link" />
+        <child link="box_on_top_wheel_link" />
+        <!-- Place the box on the top surface of the rotating platform. -->
+        <origin xyz="0 0 0.05" rpy="0 0 0" />
+    </joint>
+</robot>

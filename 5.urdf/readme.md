@@ -67,15 +67,19 @@ This workspace already includes a small URDF package under `src/simple_car_descr
 ```bash
 cd /home/kin/shared/shared/ros-practice/5.urdf
 source /opt/ros/jazzy/setup.bash
-colcon build --packages-select simple_car_description
+colcon build --packages-select simple_car_description --symlink-install
 source install/setup.bash
 
 # Python launch file
-ros2 launch simple_car_description display.launch.py model:=$(pwd)/src/simple_car_description/urdf/simple_car.urdf
+ros2 launch simple_car_description display.launch.py
 
 # XML launch file
-ros2 launch simple_car_description display.launch.xml model:=$(pwd)/src/simple_car_description/urdf/simple_car.urdf
+ros2 launch simple_car_description display.launch.xml
 ```
+
+Both launch files use `src/simple_car_description/urdf/simple_car.urdf.xacro` by default. With `--symlink-install`, changes to that file do not require another build, but the launch process must be stopped and restarted because `robot_state_publisher` reads `robot_description` only at startup.
+
+If `model:=.../simple_car.urdf` is passed explicitly, edits to `simple_car.urdf.xacro` will not be used.
 
 The launch file starts:
 - `robot_state_publisher` to publish TF from the URDF
@@ -94,7 +98,8 @@ The launch file starts:
         │   ├── display.launch.py
         │   └── display.launch.xml
         └── urdf/
-            └── simple_car.urdf
+          ├── simple_car.urdf
+          └── simple_car.urdf.xacro
 ```
 
 ### Tips
