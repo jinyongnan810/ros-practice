@@ -59,6 +59,9 @@ ros2 run rviz2 rviz2 -d src/simple_car_description/rviz/display.rviz
 # check tf trees hierarchy
 ros2 run tf2_tools view_frames
 open frames_2026-08-19_07.55.13.pdf
+
+# use xacro to generate urdf from xacro
+xacro simple_car.urdf.xacro -o simple_car.urdf
 ```
 
 ### Launching this robot
