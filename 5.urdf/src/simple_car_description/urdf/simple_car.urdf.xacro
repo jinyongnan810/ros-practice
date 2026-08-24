@@ -21,10 +21,10 @@
             <geometry>
                 <box size="${base_length} ${base_width} ${base_height}" />
             </geometry>
-            <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0" />
+            <origin xyz="0 0 ${base_mesh_z_offset + base_height / 2}" rpy="0 0 0" />
         </collision>
         <xacro:inertial_box mass="${base_mass}" x="${base_length}" y="${base_width}" z="${base_height}">
-            <origin xyz="0 0 ${base_height / 2}" rpy="0 0 0" />
+            <origin xyz="0 0 ${base_mesh_z_offset + base_height / 2}" rpy="0 0 0" />
         </xacro:inertial_box>
     </link>
 
@@ -86,7 +86,7 @@
         <parent link="base_link" />
         <child link="top_wheel_link" />
         <!-- Place the platform joint on the top surface of the chassis. -->
-        <origin xyz="0 0 ${base_height}" rpy="0 0 0" />
+        <origin xyz="0 0 ${base_mesh_z_offset + base_height}" rpy="0 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="100" velocity="10" lower="${pi / -2}" upper="${pi / 2}" />
     </joint>
