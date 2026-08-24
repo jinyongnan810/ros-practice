@@ -117,7 +117,9 @@ The launch file starts:
         ├── package.xml
         ├── launch/
         │   ├── display.launch.py
-        │   └── display.launch.xml
+        │   ├── display.launch.xml
+        │   ├── gazebo.launch.py
+        │   └── gazebo.launch.xml
         ├── meshes/
         │   └── visual/
         │       └── waffle_base.stl
@@ -139,11 +141,24 @@ The launch file starts:
 
 ## Commands
 ```bash
-# install gazebo
+# install gazebo packages
 sudo apt install ros-jazzy-ros-gz
-# start gazebo
+
+# start gazebo GUI directly
 gz sim
 
 # check gazebo topics
 gz topic -l
+
+# launch robot model and spawn in gazebo (Python launch file)
+ros2 launch simple_car_description gazebo.launch.py
+
+# launch with XML launch file
+ros2 launch simple_car_description gazebo.launch.xml
+
+# launch gazebo with RViz also enabled (Python)
+ros2 launch simple_car_description gazebo.launch.py rviz:=true
+
+# launch gazebo with RViz also enabled (XML)
+ros2 launch simple_car_description gazebo.launch.xml rviz:=true
 ```
