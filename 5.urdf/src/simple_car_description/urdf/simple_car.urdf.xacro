@@ -4,6 +4,7 @@
     <xacro:include filename="simple_car.properties.xacro" />
     <xacro:include filename="simple_car.inertias.xacro" />
     <xacro:include filename="simple_car.wheel.xacro" />
+    <xacro:include filename="simple_car.gazebo.xacro" />
 
     <!-- ====================== Links ====================== -->
 

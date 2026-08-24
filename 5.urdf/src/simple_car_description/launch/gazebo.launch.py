@@ -96,12 +96,13 @@ def generate_launch_description():
         output="screen",
     )
 
-    # ROS-Gz Bridge for /clock
+    # ROS-Gz Bridge for /clock and /joint_states
     bridge_node = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
             "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
         ],
         parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
         output="screen",

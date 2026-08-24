@@ -124,6 +124,7 @@ The launch file starts:
         │   └── visual/
         │       └── waffle_base.stl
         └── urdf/
+            ├── simple_car.gazebo.xacro
             ├── simple_car.inertias.xacro
             ├── simple_car.materials.xacro
             ├── simple_car.properties.xacro
@@ -138,6 +139,16 @@ The launch file starts:
 
 
 # Gazebo
+
+- Gazebo Sim (modern Gazebo / `ros_gz`) simulates the physical dynamics, contacts, sensors, and visuals of the robot.
+
+### Key Concepts
+- **Joint State Publisher Plugin (`gz-sim-joint-state-publisher-system`)**: Gazebo system plugin that monitors joint states (positions/velocities of movable joints) and publishes them on `<topic>joint_states</topic>`.
+- **ROS-Gz Bridge (`ros_gz_bridge`)**: Translates topics between Gazebo and ROS 2:
+  - `/clock`: Translates `gz.msgs.Clock` $\rightarrow$ `rosgraph_msgs/msg/Clock` so `use_sim_time:=true` keeps ROS nodes in sync with physics time.
+  - `/joint_states`: Translates `gz.msgs.Model` $\rightarrow$ `sensor_msgs/msg/JointState` so `robot_state_publisher` can publish `/tf` for RViz to visualize all moving links.
+- **Resource Path (`GZ_SIM_RESOURCE_PATH`)**: Tells Gazebo where packages/meshes are located. Resolves `package://<pkg>/...` (translated to `model://<pkg>/...`) to local files.
+- **Model Spawning**: The `ros_gz_sim` `create` node reads `robot_description` published by `robot_state_publisher` and dynamically inserts the robot entity into the Gazebo world.
 
 ## Commands
 ```bash

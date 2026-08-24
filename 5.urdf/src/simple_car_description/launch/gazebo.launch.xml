@@ -23,8 +23,8 @@
     <!-- Spawn Robot Model in Gazebo -->
     <node pkg="ros_gz_sim" exec="create" args="-topic robot_description -name simple_car -z 0.1" output="screen" />
 
-    <!-- ROS-Gz Bridge for Clock -->
-    <node pkg="ros_gz_bridge" exec="parameter_bridge" args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock" output="screen">
+    <!-- ROS-Gz Bridge for Clock and Joint States -->
+    <node pkg="ros_gz_bridge" exec="parameter_bridge" args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock /joint_states@sensor_msgs/msg/JointState[gz.msgs.Model" output="screen">
         <param name="use_sim_time" value="$(var use_sim_time)" />
     </node>
 
