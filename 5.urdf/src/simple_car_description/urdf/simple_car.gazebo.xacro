@@ -2,16 +2,45 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <!-- ================= Gazebo Plugins / Systems ================= -->
 
-    <!-- Joint State Publisher: Publishes joint states to Gazebo topic so they can be bridged to ROS 2 /joint_states for RViz and robot_state_publisher -->
     <gazebo>
+        <!-- Joint State Publisher: Publishes joint states to Gazebo topic for RViz & robot_state_publisher -->
         <plugin filename="gz-sim-joint-state-publisher-system"
                 name="gz::sim::systems::JointStatePublisher">
-            <topic>joint_states</topic>
+            <topic>/joint_states</topic>
             <joint_name>front_left_wheel_joint</joint_name>
             <joint_name>front_right_wheel_joint</joint_name>
             <joint_name>rear_left_wheel_joint</joint_name>
             <joint_name>rear_right_wheel_joint</joint_name>
             <joint_name>wheel_joint</joint_name>
+        </plugin>
+
+        <!-- Differential Drive: Controls wheels via velocity commands (cmd_vel) and publishes odometry -->
+        <plugin filename="gz-sim-diff-drive-system"
+                name="gz::sim::systems::DiffDrive">
+            <!-- Left wheels -->
+            <left_joint>front_left_wheel_joint</left_joint>
+            <left_joint>rear_left_wheel_joint</left_joint>
+
+            <!-- Right wheels -->
+            <right_joint>front_right_wheel_joint</right_joint>
+            <right_joint>rear_right_wheel_joint</right_joint>
+
+            <!-- Kinematics -->
+            <wheel_separation>${base_width + wheel_width}</wheel_separation>
+            <wheel_radius>${wheel_radius}</wheel_radius>
+
+            <!-- Limits & Torque -->
+            <max_linear_acceleration>5.0</max_linear_acceleration>
+            <max_angular_acceleration>5.0</max_angular_acceleration>
+            <max_wheel_torque>50.0</max_wheel_torque>
+
+            <!-- Topics & Frames (use leading slash to bind to global topics matching ros_gz_bridge) -->
+            <topic>/cmd_vel</topic>
+            <odom_topic>/odom</odom_topic>
+            <tf_topic>/tf</tf_topic>
+            <frame_id>odom</frame_id>
+            <child_frame_id>base_link</child_frame_id>
+            <odom_publish_frequency>50</odom_publish_frequency>
         </plugin>
     </gazebo>
 </robot>

@@ -8,6 +8,7 @@
     <arg name="use_sim_time" default="true" />
     <arg name="rviz" default="false" description="Whether to start RViz alongside Gazebo." />
     <arg name="rvizconfig" default="$(find-pkg-share simple_car_description)/rviz/display.rviz" description="Path to RViz config file." />
+    <arg name="bridge_config" default="$(find-pkg-share simple_car_description)/config/gazebo_bridge.yaml" description="Path to the ROS-Gazebo bridge configuration YAML file." />
 
     <!-- Robot State Publisher -->
     <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
@@ -23,8 +24,9 @@
     <!-- Spawn Robot Model in Gazebo -->
     <node pkg="ros_gz_sim" exec="create" args="-topic robot_description -name simple_car -z 0.1" output="screen" />
 
-    <!-- ROS-Gz Bridge for Clock and Joint States -->
-    <node pkg="ros_gz_bridge" exec="parameter_bridge" args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock /joint_states@sensor_msgs/msg/JointState[gz.msgs.Model" output="screen">
+    <!-- ROS-Gz Bridge configured via YAML file -->
+    <node pkg="ros_gz_bridge" exec="parameter_bridge" output="screen">
+        <param name="config_file" value="$(var bridge_config)" />
         <param name="use_sim_time" value="$(var use_sim_time)" />
     </node>
 

@@ -115,6 +115,8 @@ The launch file starts:
     └── simple_car_description/
         ├── CMakeLists.txt
         ├── package.xml
+        ├── config/
+        │   └── gazebo_bridge.yaml
         ├── launch/
         │   ├── display.launch.py
         │   ├── display.launch.xml
@@ -144,11 +146,32 @@ The launch file starts:
 
 ### Key Concepts
 - **Joint State Publisher Plugin (`gz-sim-joint-state-publisher-system`)**: Gazebo system plugin that monitors joint states (positions/velocities of movable joints) and publishes them on `<topic>joint_states</topic>`.
+- **Differential Drive Plugin (`gz-sim-diff-drive-system`)**: Subscribes to `cmd_vel` to drive the left and right wheels, and computes / publishes odometry (`odom`) and TF transforms (`odom -> base_link`).
 - **ROS-Gz Bridge (`ros_gz_bridge`)**: Translates topics between Gazebo and ROS 2:
   - `/clock`: Translates `gz.msgs.Clock` $\rightarrow$ `rosgraph_msgs/msg/Clock` so `use_sim_time:=true` keeps ROS nodes in sync with physics time.
-  - `/joint_states`: Translates `gz.msgs.Model` $\rightarrow$ `sensor_msgs/msg/JointState` so `robot_state_publisher` can publish `/tf` for RViz to visualize all moving links.
+  - `/joint_states`: Translates `gz.msgs.Model` $\rightarrow$ `sensor_msgs/msg/JointState` for `robot_state_publisher` and RViz.
+  - `/cmd_vel`: Translates `geometry_msgs/msg/Twist` (ROS 2) $\rightarrow$ `gz.msgs.Twist` (Gazebo) to drive the wheels.
+  - `/odom`: Translates `gz.msgs.Odometry` $\rightarrow$ `nav_msgs/msg/Odometry`.
+  - `/tf`: Translates `gz.msgs.Pose_V` $\rightarrow$ `tf2_msgs/msg/TFMessage` (`odom -> base_link`).
 - **Resource Path (`GZ_SIM_RESOURCE_PATH`)**: Tells Gazebo where packages/meshes are located. Resolves `package://<pkg>/...` (translated to `model://<pkg>/...`) to local files.
 - **Model Spawning**: The `ros_gz_sim` `create` node reads `robot_description` published by `robot_state_publisher` and dynamically inserts the robot entity into the Gazebo world.
+
+### What is Odometry (`odom`)?
+**Odometry** is the method of estimating a robot's position and orientation (pose) over time relative to where it started, calculated by integrating motion sensor data (such as wheel rotation from encoders).
+
+- **`nav_msgs/msg/Odometry` Message Components**:
+  - **`pose.pose`**: The estimated position $(x, y, z)$ and orientation (quaternion $x, y, z, w$) in the world-fixed starting frame (`odom`).
+  - **`pose.covariance`**: $6 \times 6$ matrix representing confidence/uncertainty in the position and orientation estimate.
+  - **`twist.twist`**: The robot's current linear velocities ($v_x, v_y, v_z$) and angular velocities ($\omega_x, \omega_y, \omega_z$) in the robot's local body frame (`base_link`).
+  - **`twist.covariance`**: $6 \times 6$ matrix representing confidence/uncertainty in velocity.
+
+- **The `odom` Coordinate Frame (REP-105)**:
+  - The **`odom`** frame is a world-fixed frame initialized at the robot's starting position ($0, 0, 0$).
+  - The TF transform **`odom -> base_link`** continuously tracks where the robot's base is relative to its start.
+
+- **Drift & Localization**:
+  - Odometry is fast, smooth, and continuous, but accumulates **drift** over time due to wheel slip, bumps, and sensor noise.
+  - In navigation stacks (Nav2 / SLAM), odometry provides high-frequency local motion tracking, while global localization (e.g., AMCL / LiDAR SLAM) corrects long-term drift against a global **`map`** frame (`map -> odom -> base_link`).
 
 ## Commands
 ```bash
@@ -172,4 +195,36 @@ ros2 launch simple_car_description gazebo.launch.py rviz:=true
 
 # launch gazebo with RViz also enabled (XML)
 ros2 launch simple_car_description gazebo.launch.xml rviz:=true
+
+# drive the robot using keyboard teleop
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
+
+### Teleop Keyboard Controls (`teleop_twist_keyboard`)
+
+| Key | Action | Description |
+| :---: | :--- | :--- |
+| **`i`** | **Forward** | Drive straight forward |
+| **`,`** *(comma)* | **Backward** | Drive straight backward |
+| **`j`** | **Turn Left** | Rotate in place counter-clockwise |
+| **`l`** | **Turn Right** | Rotate in place clockwise |
+| **`u`** | **Forward + Left** | Curve forward to the left |
+| **`o`** | **Forward + Right** | Curve forward to the right |
+| **`m`** | **Backward + Left** | Curve backward to the left |
+| **`.`** *(dot)* | **Backward + Right** | Curve backward to the right |
+| **`k`** | **Stop** | Stop all movement (sets velocities to `0.0`) |
+| *any other key* | **Stop** | Any unmapped key stops the robot |
+
+> **Keypad Layout**:
+> ```text
+>   u   i   o       (↖  ↑  ↗)
+>   j   k   l       (← stop →)
+>   m   ,   .       (↙  ↓  ↘)
+> ```
+
+#### Speed Adjustments
+| Key | Action | Effect |
+| :---: | :--- | :--- |
+| **`q`** / **`z`** | **Linear & Angular Speed** | Increase / Decrease all speeds by **10%** |
+| **`w`** / **`x`** | **Linear Speed Only** | Increase / Decrease linear speed by **10%** |
+| **`e`** / **`c`** | **Angular Speed Only** | Increase / Decrease angular speed by **10%** |

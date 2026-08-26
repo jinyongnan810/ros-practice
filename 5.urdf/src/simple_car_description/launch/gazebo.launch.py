@@ -55,6 +55,14 @@ def generate_launch_description():
         description="Whether to start RViz alongside Gazebo.",
     )
 
+    bridge_config_arg = DeclareLaunchArgument(
+        "bridge_config",
+        default_value=PathJoinSubstitution(
+            [pkg_simple_car_description, "config", "gazebo_bridge.yaml"]
+        ),
+        description="Path to the ROS-Gazebo bridge configuration YAML file.",
+    )
+
     # Robot State Publisher
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
@@ -96,15 +104,16 @@ def generate_launch_description():
         output="screen",
     )
 
-    # ROS-Gz Bridge for /clock and /joint_states
+    # ROS-Gz Bridge configured via YAML file
     bridge_node = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        arguments=[
-            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
+        parameters=[
+            {
+                "config_file": LaunchConfiguration("bridge_config"),
+                "use_sim_time": LaunchConfiguration("use_sim_time"),
+            }
         ],
-        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
         output="screen",
     )
 
@@ -129,6 +138,7 @@ def generate_launch_description():
             world_arg,
             use_sim_time_arg,
             rviz_arg,
+            bridge_config_arg,
             robot_state_publisher_node,
             gazebo_sim,
             spawn_entity_node,
