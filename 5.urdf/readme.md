@@ -125,14 +125,16 @@ The launch file starts:
         ├── meshes/
         │   └── visual/
         │       └── waffle_base.stl
-        └── urdf/
-            ├── simple_car.gazebo.xacro
-            ├── simple_car.inertias.xacro
-            ├── simple_car.materials.xacro
-            ├── simple_car.properties.xacro
-            ├── simple_car.urdf
-            ├── simple_car.urdf.xacro
-            └── simple_car.wheel.xacro
+        ├── urdf/
+        │   ├── simple_car.gazebo.xacro
+        │   ├── simple_car.inertias.xacro
+        │   ├── simple_car.materials.xacro
+        │   ├── simple_car.properties.xacro
+        │   ├── simple_car.urdf
+        │   ├── simple_car.urdf.xacro
+        │   └── simple_car.wheel.xacro
+        └── worlds/
+            └── forest.sdf
 ```
 
 ### Tips
@@ -143,6 +145,14 @@ The launch file starts:
 # Gazebo
 
 - Gazebo Sim (modern Gazebo / `ros_gz`) simulates the physical dynamics, contacts, sensors, and visuals of the robot.
+
+### Gazebo Fuel Resources (`app.gazebosim.org`)
+- Gazebo Sim natively downloads simulation assets (models, worlds, textures) directly from **Gazebo Fuel** (`https://fuel.gazebosim.org` / `app.gazebosim.org`).
+- In world files (`.sdf`), models can be referenced by their Fuel URI:
+  - `https://fuel.gazebosim.org/1.0/OpenRobotics/models/Pine Tree`
+  - `https://fuel.gazebosim.org/1.0/OpenRobotics/models/Oak tree`
+- When starting the simulation, Gazebo Sim automatically resolves and caches these Fuel models locally under `~/.gz/fuel/fuel.gazebosim.org/`.
+- Once downloaded, subsequent launches use the local cache even without an active internet connection.
 
 ### Key Concepts
 - **Joint State Publisher Plugin (`gz-sim-joint-state-publisher-system`)**: Gazebo system plugin that monitors joint states (positions/velocities of movable joints) and publishes them on `<topic>joint_states</topic>`.
@@ -181,39 +191,55 @@ sudo apt install ros-jazzy-ros-gz
 # start gazebo GUI directly
 gz sim
 
+# load and run the SDF world file directly in Gazebo Sim (-r runs simulation unpaused)
+gz sim src/simple_car_description/worlds/forest.sdf -r
+# or from the installed package share directory
+gz sim $(ros2 pkg prefix --share simple_car_description)/worlds/forest.sdf -r
+
 # check gazebo topics
 gz topic -l
 
-# launch robot model and spawn in gazebo (Python launch file)
-ros2 launch simple_car_description gazebo.launch.py
+# build package
+cd /home/kin/shared/shared/ros-practice/5.urdf
+source /opt/ros/jazzy/setup.bash
+colcon build --packages-select simple_car_description --symlink-install
+source install/setup.bash
 
-# launch with XML launch file
-ros2 launch simple_car_description gazebo.launch.xml
+# 1. Launch robot in Forest World (default)
+ros2 launch simple_car_description gazebo.launch.py       # Python
+ros2 launch simple_car_description gazebo.launch.xml      # XML
 
-# launch gazebo with RViz also enabled (Python)
-ros2 launch simple_car_description gazebo.launch.py rviz:=true
+# 2. Launch in Forest World with RViz enabled
+ros2 launch simple_car_description gazebo.launch.py rviz:=true   # Python
+ros2 launch simple_car_description gazebo.launch.xml rviz:=true  # XML
 
-# launch gazebo with RViz also enabled (XML)
-ros2 launch simple_car_description gazebo.launch.xml rviz:=true
+# 3. Launch with empty world instead of forest
+ros2 launch simple_car_description gazebo.launch.py world:=empty.sdf   # Python
+ros2 launch simple_car_description gazebo.launch.xml world:=empty.sdf  # XML
 
-# drive the robot using keyboard teleop
+# 4. Customize spawn position (e.g. x=1.0, y=2.0, z=0.1)
+ros2 launch simple_car_description gazebo.launch.py x:=1.0 y:=2.0 z:=0.1   # Python
+ros2 launch simple_car_description gazebo.launch.xml x:=1.0 y:=2.0 z:=0.1  # XML
+
+# 5. Drive the robot using keyboard teleop
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
 ```
 
 ### Teleop Keyboard Controls (`teleop_twist_keyboard`)
 
-| Key | Action | Description |
-| :---: | :--- | :--- |
-| **`i`** | **Forward** | Drive straight forward |
-| **`,`** *(comma)* | **Backward** | Drive straight backward |
-| **`j`** | **Turn Left** | Rotate in place counter-clockwise |
-| **`l`** | **Turn Right** | Rotate in place clockwise |
-| **`u`** | **Forward + Left** | Curve forward to the left |
-| **`o`** | **Forward + Right** | Curve forward to the right |
-| **`m`** | **Backward + Left** | Curve backward to the left |
-| **`.`** *(dot)* | **Backward + Right** | Curve backward to the right |
-| **`k`** | **Stop** | Stop all movement (sets velocities to `0.0`) |
-| *any other key* | **Stop** | Any unmapped key stops the robot |
+|        Key        | Action               | Description                                  |
+| :---------------: | :------------------- | :------------------------------------------- |
+|      **`i`**      | **Forward**          | Drive straight forward                       |
+| **`,`** *(comma)* | **Backward**         | Drive straight backward                      |
+|      **`j`**      | **Turn Left**        | Rotate in place counter-clockwise            |
+|      **`l`**      | **Turn Right**       | Rotate in place clockwise                    |
+|      **`u`**      | **Forward + Left**   | Curve forward to the left                    |
+|      **`o`**      | **Forward + Right**  | Curve forward to the right                   |
+|      **`m`**      | **Backward + Left**  | Curve backward to the left                   |
+|  **`.`** *(dot)*  | **Backward + Right** | Curve backward to the right                  |
+|      **`k`**      | **Stop**             | Stop all movement (sets velocities to `0.0`) |
+|  *any other key*  | **Stop**             | Any unmapped key stops the robot             |
 
 > **Keypad Layout**:
 > ```text
@@ -223,8 +249,8 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 > ```
 
 #### Speed Adjustments
-| Key | Action | Effect |
-| :---: | :--- | :--- |
-| **`q`** / **`z`** | **Linear & Angular Speed** | Increase / Decrease all speeds by **10%** |
-| **`w`** / **`x`** | **Linear Speed Only** | Increase / Decrease linear speed by **10%** |
-| **`e`** / **`c`** | **Angular Speed Only** | Increase / Decrease angular speed by **10%** |
+|        Key        | Action                     | Effect                                       |
+| :---------------: | :------------------------- | :------------------------------------------- |
+| **`q`** / **`z`** | **Linear & Angular Speed** | Increase / Decrease all speeds by **10%**    |
+| **`w`** / **`x`** | **Linear Speed Only**      | Increase / Decrease linear speed by **10%**  |
+| **`e`** / **`c`** | **Angular Speed Only**     | Increase / Decrease angular speed by **10%** |

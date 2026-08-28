@@ -4,7 +4,10 @@
     <set_env name="GZ_RESOURCE_PATH" value="$(find-pkg-share simple_car_description)/..:$(env GZ_RESOURCE_PATH '')" />
 
     <arg name="model" default="$(find-pkg-share simple_car_description)/urdf/simple_car.urdf.xacro" />
-    <arg name="world" default="empty.sdf" />
+    <arg name="world" default="$(find-pkg-share simple_car_description)/worlds/forest.sdf" description="Gazebo world file to load." />
+    <arg name="x" default="0.0" description="Initial X position for spawning the robot." />
+    <arg name="y" default="0.0" description="Initial Y position for spawning the robot." />
+    <arg name="z" default="0.1" description="Initial Z position for spawning the robot." />
     <arg name="use_sim_time" default="true" />
     <arg name="rviz" default="false" description="Whether to start RViz alongside Gazebo." />
     <arg name="rvizconfig" default="$(find-pkg-share simple_car_description)/rviz/display.rviz" description="Path to RViz config file." />
@@ -22,7 +25,7 @@
     </include>
 
     <!-- Spawn Robot Model in Gazebo -->
-    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description -name simple_car -z 0.1" output="screen" />
+    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description -name simple_car -x $(var x) -y $(var y) -z $(var z)" output="screen" />
 
     <!-- ROS-Gz Bridge configured via YAML file -->
     <node pkg="ros_gz_bridge" exec="parameter_bridge" output="screen">

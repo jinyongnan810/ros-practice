@@ -39,8 +39,28 @@ def generate_launch_description():
 
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value="empty.sdf",
-        description="Gazebo world file to load.",
+        default_value=PathJoinSubstitution(
+            [pkg_simple_car_description, "worlds", "forest.sdf"]
+        ),
+        description="Gazebo world file to load (e.g. forest.sdf or empty.sdf).",
+    )
+
+    x_arg = DeclareLaunchArgument(
+        "x",
+        default_value="0.0",
+        description="Initial X position for spawning the robot.",
+    )
+
+    y_arg = DeclareLaunchArgument(
+        "y",
+        default_value="0.0",
+        description="Initial Y position for spawning the robot.",
+    )
+
+    z_arg = DeclareLaunchArgument(
+        "z",
+        default_value="0.1",
+        description="Initial Z position for spawning the robot.",
     )
 
     use_sim_time_arg = DeclareLaunchArgument(
@@ -98,8 +118,12 @@ def generate_launch_description():
             "robot_description",
             "-name",
             "simple_car",
+            "-x",
+            LaunchConfiguration("x"),
+            "-y",
+            LaunchConfiguration("y"),
             "-z",
-            "0.1",
+            LaunchConfiguration("z"),
         ],
         output="screen",
     )
@@ -136,6 +160,9 @@ def generate_launch_description():
             gz_resource_path,
             model_arg,
             world_arg,
+            x_arg,
+            y_arg,
+            z_arg,
             use_sim_time_arg,
             rviz_arg,
             bridge_config_arg,

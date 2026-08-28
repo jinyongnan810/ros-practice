@@ -46,6 +46,9 @@ ros-practice/
 │       ├── chasing_interfaces # Custom Target.msg & TargetPositions.msg
 │       ├── chasing_cpp_pkg    # C++ spawner, chaser & XML launch
 │       └── chasing_py_pkg     # Python spawner, chaser & XML launch
+├── 5.urdf/                 # Robot URDF/Xacro modeling & Gazebo Sim simulation
+│   └── src/
+│       └── simple_car_description # Robot description, meshes, forest world, Gazebo plugins & launch
 └── ros-practice.code-workspace # VS Code multi-root workspace configuration
 ```
 
@@ -202,6 +205,18 @@ flowchart TD
 
 ---
 
+### 5. URDF & Gazebo Sim (`5.urdf/`)
+Robot kinematics modeling with URDF/Xacro, Gazebo Sim Harmonic physics simulation, Gazebo Fuel cloud model integration, and keyboard teleoperation.
+
+- **Packages:**
+  - `simple_car_description`:
+    - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `wheel.xacro`, `inertias.xacro`, `gazebo.xacro`).
+    - `worlds/`: `forest.sdf` featuring Pine & Oak trees from Gazebo Fuel (`app.gazebosim.org`), realistic lighting, and grass ground.
+    - `config/`: `gazebo_bridge.yaml` bridging `/clock`, `/joint_states`, `/cmd_vel`, `/odom`, and `/tf`.
+    - `launch/`: Python and XML launch files for RViz display (`display.launch.*`) and Gazebo Sim world execution (`gazebo.launch.*`).
+
+---
+
 ## 🚀 Quickstart Guide
 
 Each numbered folder is an independent ROS 2 workspace.
@@ -276,6 +291,19 @@ ros2 launch chasing_cpp_pkg random_turtle_spawner.launch.xml duration:=2.0
 
 # Python Implementation
 ros2 launch chasing_py_pkg random_turtle_spawner.launch.xml duration:=2.0
+```
+
+#### Running 5.urdf (Gazebo Forest World & Teleop)
+```bash
+cd 5.urdf
+colcon build --packages-select simple_car_description --symlink-install
+source install/setup.bash
+
+# Launch Gazebo Forest Simulation and spawn simple_car
+ros2 launch simple_car_description gazebo.launch.py
+
+# In another terminal: Drive the car using keyboard teleop
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 
 ---
