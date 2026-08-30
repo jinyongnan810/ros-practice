@@ -80,6 +80,30 @@
         </xacro:inertial_box>
     </link>
 
+    <!-- Camera sensor mounted on the front of the top box -->
+    <link name="camera_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${camera_radius}" length="${camera_length}" />
+            </geometry>
+            <!-- Align cylinder along X (forward) and extend outward from mounting surface -->
+            <origin xyz="${camera_length / 2} 0 0" rpy="0 ${pi / 2} 0" />
+            <material name="black" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${camera_radius}" length="${camera_length}" />
+            </geometry>
+            <origin xyz="${camera_length / 2} 0 0" rpy="0 ${pi / 2} 0" />
+        </collision>
+        <xacro:inertial_cylinder mass="${camera_mass}" radius="${camera_radius}" length="${camera_length}">
+            <origin xyz="${camera_length / 2} 0 0" rpy="0 ${pi / 2} 0" />
+        </xacro:inertial_cylinder>
+    </link>
+
+    <!-- Camera optical frame (REP-103 convention: +Z forward, +X right, +Y down) -->
+    <link name="camera_optical_frame" />
+
     <!-- ===================== Joints ====================== -->
 
     <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
@@ -97,5 +121,19 @@
         <child link="box_on_top_wheel_link" />
         <!-- Place the box on the top surface of the rotating platform. -->
         <origin xyz="0 0 ${top_wheel_height}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="camera_joint" type="fixed">
+        <parent link="box_on_top_wheel_link" />
+        <child link="camera_link" />
+        <!-- Place the camera joint at the front face center of the top box. -->
+        <origin xyz="${top_box_length / 2} 0 ${top_box_height / 2}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="camera_optical_joint" type="fixed">
+        <parent link="camera_link" />
+        <child link="camera_optical_frame" />
+        <!-- Optical frame transform: +Z forward along camera lens, +X right, +Y down -->
+        <origin xyz="${camera_length} 0 0" rpy="${-pi / 2} 0 ${-pi / 2}" />
     </joint>
 </robot>

@@ -10,6 +10,9 @@
   <material name="gray">
     <color rgba="0.5 0.5 0.5 1"/>
   </material>
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1"/>
+  </material>
   <!-- ====================== Links ====================== -->
   <!-- Chassis visual uses an Apache-2.0 TurtleBot3 Waffle base mesh. -->
   <link name="base_link">
@@ -219,6 +222,29 @@
       <inertia ixx="0.0033333333333333335" ixy="0.0" ixz="0.0" iyy="0.0033333333333333335" iyz="0.0" izz="0.0033333333333333335"/>
     </inertial>
   </link>
+  <!-- Camera sensor mounted on the front of the top box -->
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.04" radius="0.02"/>
+      </geometry>
+      <!-- Align cylinder along X (forward) and extend outward from mounting surface -->
+      <origin rpy="0 1.5707963267948966 0" xyz="0.02 0 0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.04" radius="0.02"/>
+      </geometry>
+      <origin rpy="0 1.5707963267948966 0" xyz="0.02 0 0"/>
+    </collision>
+    <inertial>
+      <origin rpy="0 1.5707963267948966 0" xyz="0.02 0 0"/>
+      <mass value="0.05"/>
+      <inertia ixx="1.1666666666666668e-05" ixy="0.0" ixz="0.0" iyy="1.1666666666666668e-05" iyz="0.0" izz="1e-05"/>
+    </inertial>
+  </link>
+  <link name="camera_optical_frame"/>
   <!-- ===================== Joints ====================== -->
   <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
   <joint name="wheel_joint" type="revolute">
@@ -235,7 +261,40 @@
     <!-- Place the box on the top surface of the rotating platform. -->
     <origin rpy="0 0 0" xyz="0 0 0.05"/>
   </joint>
+  <joint name="camera_joint" type="fixed">
+    <parent link="box_on_top_wheel_link"/>
+    <child link="camera_link"/>
+    <!-- Place the camera joint at the front face center of the top box. -->
+    <origin rpy="0 0 0" xyz="0.1 0 0.1"/>
+  </joint>
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
+    <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0.04 0 0"/>
+  </joint>
   <!-- ================= Gazebo Plugins / Systems ================= -->
+  <gazebo reference="camera_link">
+    <sensor name="camera" type="camera">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>30</update_rate>
+      <topic>/camera/image_raw</topic>
+      <gz_frame_id>camera_optical_frame</gz_frame_id>
+      <camera name="camera_sensor">
+        <camera_info_topic>/camera/camera_info</camera_info_topic>
+        <horizontal_fov>1.089</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>8.0</far>
+        </clip>
+      </camera>
+    </sensor>
+  </gazebo>
   <gazebo>
     <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
       <topic>/joint_states</topic>

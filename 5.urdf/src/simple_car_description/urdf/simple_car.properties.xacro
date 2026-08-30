@@ -21,4 +21,8 @@
     <xacro:property name="top_box_width" value="0.2" />
     <xacro:property name="top_box_height" value="0.2" />
     <xacro:property name="top_box_mass" value="0.5" />
+
+    <xacro:property name="camera_radius" value="0.02" />
+    <xacro:property name="camera_length" value="0.04" />
+    <xacro:property name="camera_mass" value="0.05" />
 </robot>

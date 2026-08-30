@@ -207,9 +207,11 @@ flowchart TD
         base_link --> rear_right["rear_right_wheel_link"]
     end
 
-    subgraph Turret["Upper Platform"]
-        base_link -->|"continuous joint"| top_wheel["top_wheel_link"]
-        top_wheel -->|"fixed joint"| top_box["top_box_link"]
+    subgraph Turret["Upper Platform & Sensor"]
+        base_link -->|"revolute joint"| top_wheel["top_wheel_link"]
+        top_wheel -->|"fixed joint"| top_box["box_on_top_wheel_link"]
+        top_box -->|"fixed joint"| camera["camera_link"]
+        camera -->|"fixed joint"| camera_opt["camera_optical_frame"]
     end
 ```
 
@@ -229,7 +231,7 @@ flowchart LR
     subgraph ROS2["ROS 2 Space"]
         Teleop["teleop_twist_keyboard"]
         RSP["robot_state_publisher"]
-        RViz["rviz2"]
+        RViz["rviz2 (RobotModel, TF, Image)"]
     end
 
     subgraph Bridge["ros_gz_bridge (parameter_bridge)"]
@@ -238,10 +240,13 @@ flowchart LR
         direction_odom["◄── /odom (Odometry)"]
         direction_tf["◄── /tf (TFMessage)"]
         direction_clock["◄── /clock (Clock)"]
+        direction_img["◄── /camera/image_raw (Image)"]
+        direction_info["◄── /camera/camera_info (CameraInfo)"]
     end
 
     subgraph Gazebo["Gazebo Sim (Harmonic)"]
         GZ_World["forest.sdf World"]
+        GZ_Sensors["gz-sim-sensors-system (Camera)"]
         GZ_Diff["gz-sim-diff-drive-system"]
         GZ_JS["gz-sim-joint-state-publisher-system"]
         GZ_Fuel["Gazebo Fuel Assets (Pine & Oak Trees)"]
@@ -251,6 +256,8 @@ flowchart LR
     GZ_JS --> direction_js --> RSP
     GZ_Diff --> direction_odom --> RViz
     GZ_Diff --> direction_tf --> RViz
+    GZ_Sensors --> direction_img --> RViz
+    GZ_Sensors --> direction_info --> RViz
     direction_clock -.->|use_sim_time:=true| ROS2
     RSP --> RViz
 ```
@@ -259,12 +266,15 @@ flowchart LR
 
 ### Key Gazebo Sim Plugins
 
-The robot description includes `<gazebo>` extension blocks (`simple_car.gazebo.xacro`) configuring the following system plugins:
+The robot description and world configure the following system plugins:
 
-1. **`gz-sim-joint-state-publisher-system`**:
-   - Monitors positions and velocities of all moving joints (`top_wheel_joint`, `wheel_joints`).
+1. **`gz-sim-sensors-system`** (World & Robot):
+   - Powers rendering-based sensors (cameras, LiDAR) using the OGRE 2 render engine.
+   - Publishes raw camera images and camera calibration parameters to Gazebo topics (`/camera/image_raw`, `/camera/camera_info`).
+2. **`gz-sim-joint-state-publisher-system`**:
+   - Monitors positions and velocities of all moving joints (`wheel_joint`, wheel joints).
    - Publishes joint telemetry to the Gazebo `/joint_states` topic.
-2. **`gz-sim-diff-drive-system`**:
+3. **`gz-sim-diff-drive-system`**:
    - Subscribes to `/cmd_vel` to drive the left and right wheels based on differential steering kinematics.
    - Calculates odometry from wheel encoder displacement and publishes `/odom` and TF transforms (`odom -> base_link`).
 
@@ -274,13 +284,15 @@ The robot description includes `<gazebo>` extension blocks (`simple_car.gazebo.x
 
 `ros_gz_bridge` provides bi-directional data conversion between Gazebo Sim topics and ROS 2 topics, configured via [`config/gazebo_bridge.yaml`](file:///Users/kin/Documents/shared/ros-practice/5.urdf/src/simple_car_description/config/gazebo_bridge.yaml):
 
-| ROS 2 Topic     | ROS 2 Type                   | Gazebo Topic    | Gazebo Type        |  Direction  | Purpose                                                          |
-| :-------------- | :--------------------------- | :-------------- | :----------------- | :---------: | :--------------------------------------------------------------- |
-| `/clock`        | `rosgraph_msgs/msg/Clock`    | `/clock`        | `gz.msgs.Clock`    | `GZ_TO_ROS` | Synchronizes ROS nodes to simulation time (`use_sim_time:=true`) |
-| `/joint_states` | `sensor_msgs/msg/JointState` | `/joint_states` | `gz.msgs.Model`    | `GZ_TO_ROS` | Feeds joint positions to `robot_state_publisher` & RViz          |
-| `/cmd_vel`      | `geometry_msgs/msg/Twist`    | `/cmd_vel`      | `gz.msgs.Twist`    | `ROS_TO_GZ` | Sends velocity commands to the differential drive plugin         |
-| `/odom`         | `nav_msgs/msg/Odometry`      | `/odom`         | `gz.msgs.Odometry` | `GZ_TO_ROS` | Relays wheel odometry estimate to ROS 2                          |
-| `/tf`           | `tf2_msgs/msg/TFMessage`     | `/tf`           | `gz.msgs.Pose_V`   | `GZ_TO_ROS` | Broadcasts `odom -> base_link` dynamic transform                 |
+| ROS 2 Topic           | ROS 2 Type                   | Gazebo Topic          | Gazebo Type          |  Direction  | Purpose                                                          |
+| :-------------------- | :--------------------------- | :-------------------- | :------------------- | :---------: | :--------------------------------------------------------------- |
+| `/clock`              | `rosgraph_msgs/msg/Clock`    | `/clock`              | `gz.msgs.Clock`      | `GZ_TO_ROS` | Synchronizes ROS nodes to simulation time (`use_sim_time:=true`) |
+| `/joint_states`       | `sensor_msgs/msg/JointState` | `/joint_states`       | `gz.msgs.Model`      | `GZ_TO_ROS` | Feeds joint positions to `robot_state_publisher` & RViz          |
+| `/cmd_vel`            | `geometry_msgs/msg/Twist`    | `/cmd_vel`            | `gz.msgs.Twist`      | `ROS_TO_GZ` | Sends velocity commands to the differential drive plugin         |
+| `/odom`               | `nav_msgs/msg/Odometry`      | `/odom`               | `gz.msgs.Odometry`   | `GZ_TO_ROS` | Relays wheel odometry estimate to ROS 2                          |
+| `/tf`                 | `tf2_msgs/msg/TFMessage`     | `/tf`                 | `gz.msgs.Pose_V`     | `GZ_TO_ROS` | Broadcasts `odom -> base_link` dynamic transform                 |
+| `/camera/image_raw`   | `sensor_msgs/msg/Image`      | `/camera/image_raw`   | `gz.msgs.Image`      | `GZ_TO_ROS` | Relays camera RGB image stream to ROS 2                          |
+| `/camera/camera_info` | `sensor_msgs/msg/CameraInfo` | `/camera/camera_info` | `gz.msgs.CameraInfo` | `GZ_TO_ROS` | Relays camera intrinsic parameters to ROS 2                      |
 
 ---
 
