@@ -40,6 +40,7 @@ A practice and hands-on package for robot kinematic modeling with **URDF / Xacro
     - [Gazebo Sim Direct CLI](#gazebo-sim-direct-cli)
   - [💡 Tips \& Troubleshooting](#-tips--troubleshooting)
     - [1. VS Code XML Syntax Highlighting for URDF / Xacro](#1-vs-code-xml-syntax-highlighting-for-urdf--xacro)
+    - [2. Gazebo Joint Dynamics \& implicitSpringDamper](#2-gazebo-joint-dynamics--implicitspringdamper)
 
 ---
 
@@ -72,6 +73,7 @@ The workspace contains the `simple_car_description` package, which defines a 4-w
         │   ├── simple_car.materials.xacro # Color and material definitions
         │   ├── simple_car.inertias.xacro  # Standard inertia calculation macros
         │   ├── simple_car.wheel.xacro     # Reusable wheel macro (link + joint)
+        │   ├── simple_car.arm.xacro       # 2-part robotic arm macro (links, joints, Gazebo)
         │   ├── simple_car.gazebo.xacro    # Gazebo system plugins (Diff Drive, Joint States)
         │   └── simple_car.urdf            # Pre-generated raw URDF
         └── worlds/
@@ -207,11 +209,16 @@ flowchart TD
         base_link --> rear_right["rear_right_wheel_link"]
     end
 
-    subgraph Turret["Upper Platform & Sensor"]
+    subgraph Turret["Upper Platform & Sensor Mount"]
         base_link -->|"revolute joint"| top_wheel["top_wheel_link"]
         top_wheel -->|"fixed joint"| top_box["box_on_top_wheel_link"]
         top_box -->|"fixed joint"| camera["camera_link"]
         camera -->|"fixed joint"| camera_opt["camera_optical_frame"]
+    end
+
+    subgraph Arm["2-Part Robotic Arm"]
+        top_box -->|"arm_joint_1 (revolute)"| arm_link_1["arm_link_1 (Lower Arm)"]
+        arm_link_1 -->|"arm_joint_2 (revolute)"| arm_link_2["arm_link_2 (Upper Arm)"]
     end
 ```
 
@@ -504,3 +511,21 @@ To enable rich syntax highlighting and XML validation for `.urdf` and `.xacro` f
 2. Search for **File Associations**.
 3. Add item: `*.urdf` $\rightarrow$ Value: `xml`
 4. Add item: `*.xacro` $\rightarrow$ Value: `xml`
+
+---
+
+### 2. Gazebo Joint Dynamics & `implicitSpringDamper`
+
+When configuring joint damping or friction in URDF (`<dynamics damping="..." friction="..."/>`), physics engines (such as ODE) use explicit Euler integration by default. With discrete simulation time steps (e.g. $1\text{ ms}$), high damping or stiffness can cause high-frequency joint jitter or numerical instability.
+
+**Fix**: Enable implicit integration per joint in Gazebo to solve damping within the constraint matrix:
+
+```xml
+<gazebo reference="arm_joint_1">
+    <implicitSpringDamper>true</implicitSpringDamper>
+</gazebo>
+```
+
+> [!TIP]
+> **Best Practice**: Always set `<implicitSpringDamper>true</implicitSpringDamper>` on robotic arms, suspension joints, and high-damping revolute joints to ensure smooth, jitter-free, and numerically stable physics in Gazebo.
+

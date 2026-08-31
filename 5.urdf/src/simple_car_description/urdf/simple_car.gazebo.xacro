@@ -34,6 +34,8 @@
             <joint_name>rear_left_wheel_joint</joint_name>
             <joint_name>rear_right_wheel_joint</joint_name>
             <joint_name>wheel_joint</joint_name>
+            <joint_name>arm_joint_1</joint_name>
+            <joint_name>arm_joint_2</joint_name>
         </plugin>
 
         <!-- Differential Drive: Controls wheels via velocity commands (cmd_vel) and publishes odometry -->

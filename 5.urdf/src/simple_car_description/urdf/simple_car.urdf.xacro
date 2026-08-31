@@ -4,6 +4,7 @@
     <xacro:include filename="simple_car.properties.xacro" />
     <xacro:include filename="simple_car.inertias.xacro" />
     <xacro:include filename="simple_car.wheel.xacro" />
+    <xacro:include filename="simple_car.arm.xacro" />
     <xacro:include filename="simple_car.gazebo.xacro" />
 
     <!-- ====================== Links ====================== -->
@@ -136,4 +137,7 @@
         <!-- Optical frame transform: +Z forward along camera lens, +X right, +Y down -->
         <origin xyz="${camera_length} 0 0" rpy="${-pi / 2} 0 ${-pi / 2}" />
     </joint>
+
+    <!-- 2-part robotic arm mounted above the top box -->
+    <xacro:arm parent="box_on_top_wheel_link" />
 </robot>

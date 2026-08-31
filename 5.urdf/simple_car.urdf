@@ -13,6 +13,9 @@
   <material name="black">
     <color rgba="0.1 0.1 0.1 1"/>
   </material>
+  <material name="orange">
+    <color rgba="1.0 0.5 0.0 1.0"/>
+  </material>
   <!-- ====================== Links ====================== -->
   <!-- Chassis visual uses an Apache-2.0 TurtleBot3 Waffle base mesh. -->
   <link name="base_link">
@@ -272,6 +275,97 @@
     <child link="camera_optical_frame"/>
     <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0.04 0 0"/>
   </joint>
+  <!-- ================= Arm (2-Part Arm) ================= -->
+  <link name="arm_link_1">
+    <visual>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+      <!-- Raise the cylinder so its base sits at the joint origin -->
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <mass value="0.2"/>
+      <inertia ixx="0.004186666666666667" ixy="0.0" ixz="0.0" iyy="0.004186666666666667" iyz="0.0" izz="4e-05"/>
+    </inertial>
+  </link>
+  <gazebo reference="arm_link_1">
+    <visual>
+      <material>
+        <ambient>1.0 0.5 0.0 1.0</ambient>
+        <diffuse>1.0 0.5 0.0 1.0</diffuse>
+        <specular>0.5 0.5 0.5 1.0</specular>
+      </material>
+    </visual>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <!-- Joint 1: Mounted above top box, bends up to 90 degrees (+/- pi/2) around Y-axis -->
+  <joint name="arm_joint_1" type="revolute">
+    <parent link="box_on_top_wheel_link"/>
+    <child link="arm_link_1"/>
+    <!-- Position on top surface of top box -->
+    <origin rpy="0 0 0" xyz="0 0 0.2"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="10"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+  <gazebo reference="arm_joint_1">
+    <implicitSpringDamper>true</implicitSpringDamper>
+  </gazebo>
+  <link name="arm_link_2">
+    <visual>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+      <!-- Raise the cylinder so its base sits at the joint origin -->
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.5" radius="0.02"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.25"/>
+      <mass value="0.2"/>
+      <inertia ixx="0.004186666666666667" ixy="0.0" ixz="0.0" iyy="0.004186666666666667" iyz="0.0" izz="4e-05"/>
+    </inertial>
+  </link>
+  <gazebo reference="arm_link_2">
+    <visual>
+      <material>
+        <ambient>1.0 0.5 0.0 1.0</ambient>
+        <diffuse>1.0 0.5 0.0 1.0</diffuse>
+        <specular>0.5 0.5 0.5 1.0</specular>
+      </material>
+    </visual>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <!-- Joint 2: Connects Arm Link 1 to Arm Link 2, bends up to 90 degrees (+/- pi/2) around Y-axis -->
+  <joint name="arm_joint_2" type="revolute">
+    <parent link="arm_link_1"/>
+    <child link="arm_link_2"/>
+    <!-- Position at tip of Arm Link 1 -->
+    <origin rpy="0 0 0" xyz="0 0 0.5"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.5707963267948966" upper="1.5707963267948966" velocity="10"/>
+    <dynamics damping="0.1" friction="0.1"/>
+  </joint>
+  <gazebo reference="arm_joint_2">
+    <implicitSpringDamper>true</implicitSpringDamper>
+  </gazebo>
   <!-- ================= Gazebo Plugins / Systems ================= -->
   <gazebo reference="camera_link">
     <sensor name="camera" type="camera">
@@ -303,6 +397,8 @@
       <joint_name>rear_left_wheel_joint</joint_name>
       <joint_name>rear_right_wheel_joint</joint_name>
       <joint_name>wheel_joint</joint_name>
+      <joint_name>arm_joint_1</joint_name>
+      <joint_name>arm_joint_2</joint_name>
     </plugin>
     <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
       <left_joint>front_left_wheel_joint</left_joint>

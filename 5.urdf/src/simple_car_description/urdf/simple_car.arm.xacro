@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="arm" params="parent:=box_on_top_wheel_link">
+        <!-- ================= Arm Part 1 (Lower Arm) ================= -->
+        <link name="arm_link_1">
+            <visual>
+                <geometry>
+                    <cylinder radius="${arm_radius}" length="${arm_length}" />
+                </geometry>
+                <!-- Raise the cylinder so its base sits at the joint origin -->
+                <origin xyz="0 0 ${arm_length / 2}" rpy="0 0 0" />
+                <material name="orange" />
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder radius="${arm_radius}" length="${arm_length}" />
+                </geometry>
+                <origin xyz="0 0 ${arm_length / 2}" rpy="0 0 0" />
+            </collision>
+            <xacro:inertial_cylinder mass="${arm_mass}" radius="${arm_radius}"
+                length="${arm_length}">
+                <origin xyz="0 0 ${arm_length / 2}" rpy="0 0 0" />
+            </xacro:inertial_cylinder>
+        </link>
+
+        <!-- Gazebo settings for Arm Part 1 -->
+        <gazebo reference="arm_link_1">
+            <visual>
+                <material>
+                    <ambient>1.0 0.5 0.0 1.0</ambient>
+                    <diffuse>1.0 0.5 0.0 1.0</diffuse>
+                    <specular>0.5 0.5 0.5 1.0</specular>
+                </material>
+            </visual>
+            <mu1>0.2</mu1>
+            <mu2>0.2</mu2>
+        </gazebo>
+
+        <!-- Joint 1: Mounted above top box, bends up to 90 degrees (+/- pi/2) around Y-axis -->
+        <joint name="arm_joint_1" type="revolute">
+            <parent link="${parent}" />
+            <child link="arm_link_1" />
+            <!-- Position on top surface of top box -->
+            <origin xyz="0 0 ${top_box_height}" rpy="0 0 0" />
+            <axis xyz="0 1 0" />
+            <limit effort="100" velocity="10" lower="${-pi / 2}" upper="${pi / 2}" />
+            <dynamics damping="0.1" friction="0.1" />
+        </joint>
+
+        <gazebo reference="arm_joint_1">
+            <implicitSpringDamper>true</implicitSpringDamper>
+        </gazebo>
+
+        <!-- ================= Arm Part 2 (Upper Arm) ================= -->
+        <link name="arm_link_2">
+            <visual>
+                <geometry>
+                    <cylinder radius="${arm_radius}" length="${arm_length}" />
+                </geometry>
+                <!-- Raise the cylinder so its base sits at the joint origin -->
+                <origin xyz="0 0 ${arm_length / 2}" rpy="0 0 0" />
+                <material name="orange" />
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder radius="${arm_radius}" length="${arm_length}" />
+                </geometry>
+                <origin xyz="0 0 ${arm_length / 2}" rpy="0 0 0" />
+            </collision>
+            <xacro:inertial_cylinder mass="${arm_mass}" radius="${arm_radius}"
+                length="${arm_length}">
+                <origin xyz="0 0 ${arm_length / 2}" rpy="0 0 0" />
+            </xacro:inertial_cylinder>
+        </link>
+
+        <!-- Gazebo settings for Arm Part 2 -->
+        <gazebo reference="arm_link_2">
+            <visual>
+                <material>
+                    <ambient>1.0 0.5 0.0 1.0</ambient>
+                    <diffuse>1.0 0.5 0.0 1.0</diffuse>
+                    <specular>0.5 0.5 0.5 1.0</specular>
+                </material>
+            </visual>
+            <mu1>0.2</mu1>
+            <mu2>0.2</mu2>
+        </gazebo>
+
+        <!-- Joint 2: Connects Arm Link 1 to Arm Link 2, bends up to 90 degrees (+/- pi/2) around
+        Y-axis -->
+        <joint name="arm_joint_2" type="revolute">
+            <parent link="arm_link_1" />
+            <child link="arm_link_2" />
+            <!-- Position at tip of Arm Link 1 -->
+            <origin xyz="0 0 ${arm_length}" rpy="0 0 0" />
+            <axis xyz="0 1 0" />
+            <limit effort="100" velocity="10" lower="${-pi / 2}" upper="${pi / 2}" />
+            <dynamics damping="0.1" friction="0.1" />
+        </joint>
+
+        <gazebo reference="arm_joint_2">
+            <!-- Ensure stable, smooth, and realistic simulation for the joint -->
+            <implicitSpringDamper>true</implicitSpringDamper>
+        </gazebo>
+    </xacro:macro>
+</robot>
