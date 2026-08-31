@@ -36,11 +36,13 @@ A practice and hands-on package for robot kinematic modeling with **URDF / Xacro
       - [Speed Adjustment Controls](#speed-adjustment-controls)
   - [⚡ CLI Command Reference](#-cli-command-reference)
     - [URDF \& Xacro Tools](#urdf--xacro-tools)
+    - [Joint Position Control (Top Wheel \& Arm)](#joint-position-control-top-wheel--arm)
     - [TF \& Transform Diagnostics](#tf--transform-diagnostics)
     - [Gazebo Sim Direct CLI](#gazebo-sim-direct-cli)
   - [💡 Tips \& Troubleshooting](#-tips--troubleshooting)
     - [1. VS Code XML Syntax Highlighting for URDF / Xacro](#1-vs-code-xml-syntax-highlighting-for-urdf--xacro)
     - [2. Gazebo Joint Dynamics \& implicitSpringDamper](#2-gazebo-joint-dynamics--implicitspringdamper)
+    - [3. Understanding PID Controller "Gains" (p_gain, i_gain, d_gain)](#3-understanding-pid-controller-gains-p_gain-i_gain-d_gain)
 
 ---
 
@@ -243,6 +245,7 @@ flowchart LR
 
     subgraph Bridge["ros_gz_bridge (parameter_bridge)"]
         direction_cmd["/cmd_vel (Twist) ──►"]
+        direction_pos["/top_wheel/cmd_pos, /arm_joint_1/cmd_pos, /arm_joint_2/cmd_pos (Float64) ──►"]
         direction_js["◄── /joint_states (JointState)"]
         direction_odom["◄── /odom (Odometry)"]
         direction_tf["◄── /tf (TFMessage)"]
@@ -255,11 +258,13 @@ flowchart LR
         GZ_World["forest.sdf World"]
         GZ_Sensors["gz-sim-sensors-system (Camera)"]
         GZ_Diff["gz-sim-diff-drive-system"]
+        GZ_PosCtrl["gz-sim-joint-position-controller-system (Top Wheel & Arm)"]
         GZ_JS["gz-sim-joint-state-publisher-system"]
         GZ_Fuel["Gazebo Fuel Assets (Pine & Oak Trees)"]
     end
 
     Teleop -->|/cmd_vel| direction_cmd --> GZ_Diff
+    direction_pos --> GZ_PosCtrl
     GZ_JS --> direction_js --> RSP
     GZ_Diff --> direction_odom --> RViz
     GZ_Diff --> direction_tf --> RViz
@@ -279,11 +284,14 @@ The robot description and world configure the following system plugins:
    - Powers rendering-based sensors (cameras, LiDAR) using the OGRE 2 render engine.
    - Publishes raw camera images and camera calibration parameters to Gazebo topics (`/camera/image_raw`, `/camera/camera_info`).
 2. **`gz-sim-joint-state-publisher-system`**:
-   - Monitors positions and velocities of all moving joints (`wheel_joint`, wheel joints).
+   - Monitors positions and velocities of all moving joints (`wheel_joint`, `arm_joint_1`, `arm_joint_2`, wheel joints).
    - Publishes joint telemetry to the Gazebo `/joint_states` topic.
 3. **`gz-sim-diff-drive-system`**:
    - Subscribes to `/cmd_vel` to drive the left and right wheels based on differential steering kinematics.
    - Calculates odometry from wheel encoder displacement and publishes `/odom` and TF transforms (`odom -> base_link`).
+4. **`gz-sim-joint-position-controller-system`**:
+   - Closed-loop PID position controllers for the upper rotating platform (`wheel_joint`) and both segments of the robotic arm (`arm_joint_1`, `arm_joint_2`).
+   - Subscribes to `/top_wheel/cmd_pos`, `/arm_joint_1/cmd_pos`, and `/arm_joint_2/cmd_pos` to rotate joints to target angles in radians.
 
 ---
 
@@ -300,6 +308,9 @@ The robot description and world configure the following system plugins:
 | `/tf`                 | `tf2_msgs/msg/TFMessage`     | `/tf`                 | `gz.msgs.Pose_V`     | `GZ_TO_ROS` | Broadcasts `odom -> base_link` dynamic transform                 |
 | `/camera/image_raw`   | `sensor_msgs/msg/Image`      | `/camera/image_raw`   | `gz.msgs.Image`      | `GZ_TO_ROS` | Relays camera RGB image stream to ROS 2                          |
 | `/camera/camera_info` | `sensor_msgs/msg/CameraInfo` | `/camera/camera_info` | `gz.msgs.CameraInfo` | `GZ_TO_ROS` | Relays camera intrinsic parameters to ROS 2                      |
+| `/top_wheel/cmd_pos`  | `std_msgs/msg/Float64`       | `/top_wheel/cmd_pos`  | `gz.msgs.Double`     | `ROS_TO_GZ` | Sends target angle (rad) to top wheel platform controller        |
+| `/arm_joint_1/cmd_pos`| `std_msgs/msg/Float64`       | `/arm_joint_1/cmd_pos`| `gz.msgs.Double`     | `ROS_TO_GZ` | Sends target angle (rad) to arm joint 1 position controller      |
+| `/arm_joint_2/cmd_pos`| `std_msgs/msg/Float64`       | `/arm_joint_2/cmd_pos`| `gz.msgs.Double`     | `ROS_TO_GZ` | Sends target angle (rad) to arm joint 2 position controller      |
 
 ---
 
@@ -472,6 +483,26 @@ ros2 param get /robot_state_publisher robot_description
 ros2 topic echo /joint_states
 ```
 
+### Joint Position Control (Top Wheel & Arm)
+
+Command the target angle (in radians, bounded between $-\pi/2 \approx -1.57$ and $+\pi/2 \approx +1.57$) to rotate the upper platform or robotic arm segments:
+
+```bash
+# Rotate top wheel platform to 45 degrees (+pi/4 rad)
+ros2 topic pub --once /top_wheel/cmd_pos std_msgs/msg/Float64 "{data: 0.785}"
+
+# Bend lower arm joint (arm_joint_1) to 90 degrees (+pi/2 rad)
+ros2 topic pub --once /arm_joint_1/cmd_pos std_msgs/msg/Float64 "{data: 1.5708}"
+
+# Bend upper arm joint (arm_joint_2) to -45 degrees (-pi/4 rad)
+ros2 topic pub --once /arm_joint_2/cmd_pos std_msgs/msg/Float64 "{data: -0.785}"
+
+# Return all joints to neutral home position (0 rad)
+ros2 topic pub --once /top_wheel/cmd_pos std_msgs/msg/Float64 "{data: 0.0}"
+ros2 topic pub --once /arm_joint_1/cmd_pos std_msgs/msg/Float64 "{data: 0.0}"
+ros2 topic pub --once /arm_joint_2/cmd_pos std_msgs/msg/Float64 "{data: 0.0}"
+```
+
 ### TF & Transform Diagnostics
 
 ```bash
@@ -528,4 +559,28 @@ When configuring joint damping or friction in URDF (`<dynamics damping="..." fri
 
 > [!TIP]
 > **Best Practice**: Always set `<implicitSpringDamper>true</implicitSpringDamper>` on robotic arms, suspension joints, and high-damping revolute joints to ensure smooth, jitter-free, and numerically stable physics in Gazebo.
+
+---
+
+### 3. Understanding PID Controller "Gains" (`p_gain`, `i_gain`, `d_gain`)
+
+In control theory and engineering, **Gain** (noun) is an **amplification factor or multiplication ratio** that defines the sensitivity between an **input signal (error)** and an **output command (control torque / force)**:
+
+$$\text{Control Output} = \text{Gain} \times \text{Error Input}$$
+
+When tuning Gazebo `JointPositionController` plugins, the controller calculates the instantaneous positional error:
+$$e(t) = \theta_{\text{target}} - \theta_{\text{actual}}$$
+
+The three gains act as weighting multipliers across time:
+
+$$\tau(t) = \underbrace{K_p \cdot e(t)}_{\text{Proportional (Present)}} + \underbrace{K_i \int_0^t e(\tau)\,d\tau}_{\text{Integral (Past)}} + \underbrace{K_d \cdot \frac{de(t)}{dt}}_{\text{Derivative (Future)}}$$
+
+| Parameter | Control Term | Physical Meaning & Role | Mechanical Analogy |
+| :--- | :--- | :--- | :--- |
+| **`p_gain`** ($K_p$) | **Proportional Gain** | Multiplier for **present error**. Determines how hard the motor pushes based on current distance from target. | **Spring stiffness** ($F = -k x$) |
+| **`i_gain`** ($K_i$) | **Integral Gain** | Multiplier for **accumulated past error**. Gradually increases torque over time to eliminate steady-state offsets (e.g. overcoming gravity or joint friction). | **Gradual pressure build-up** |
+| **`d_gain`** ($K_d$) | **Derivative Gain** | Multiplier for **rate of change of error** (velocity). Counters rapid movement to prevent overshoot and dampen oscillations. | **Shock absorber / Dashpot** ($F = -c v$) |
+| **`i_max` / `i_min`** | **Integral Clamps** | Limits the maximum/minimum accumulated integral torque to prevent **integrator windup**. | **Pressure relief valve** |
+| **`cmd_max` / `cmd_min`** | **Torque Limits** | Saturation boundaries on total motor torque output ($\text{Nm}$). | **Motor power ceiling** |
+
 

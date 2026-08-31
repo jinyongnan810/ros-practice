@@ -1,21 +1,28 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <!-- ================= Gazebo Plugins / Systems ================= -->
+
+    <!-- Camera sensor attachment on camera_link -->
     <gazebo reference="camera_link">
         <sensor name="camera" type="camera">
+            <!-- Keep sensor actively generating frames in background -->
             <always_on>true</always_on>
+            <!-- Show viewing frustum in Gazebo GUI -->
             <visualize>true</visualize>
+            <!-- Frame rate in Hz -->
             <update_rate>30</update_rate>
             <topic>/camera/image_raw</topic>
             <gz_frame_id>camera_optical_frame</gz_frame_id>
             <camera name="camera_sensor">
                 <camera_info_topic>/camera/camera_info</camera_info_topic>
+                <!-- Horizontal FOV (~62.4 deg) -->
                 <horizontal_fov>1.089</horizontal_fov>
                 <image>
                     <width>640</width>
                     <height>480</height>
                     <format>R8G8B8</format>
                 </image>
+                <!-- Near and far clipping planes in meters -->
                 <clip>
                     <near>0.05</near>
                     <far>8.0</far>
@@ -29,6 +36,7 @@
         <plugin filename="gz-sim-joint-state-publisher-system"
                 name="gz::sim::systems::JointStatePublisher">
             <topic>/joint_states</topic>
+            <!-- Monitored joints included in state telemetry -->
             <joint_name>front_left_wheel_joint</joint_name>
             <joint_name>front_right_wheel_joint</joint_name>
             <joint_name>rear_left_wheel_joint</joint_name>
@@ -41,30 +49,73 @@
         <!-- Differential Drive: Controls wheels via velocity commands (cmd_vel) and publishes odometry -->
         <plugin filename="gz-sim-diff-drive-system"
                 name="gz::sim::systems::DiffDrive">
-            <!-- Left wheels -->
+            <!-- Left & Right drive wheel joints -->
             <left_joint>front_left_wheel_joint</left_joint>
             <left_joint>rear_left_wheel_joint</left_joint>
-
-            <!-- Right wheels -->
             <right_joint>front_right_wheel_joint</right_joint>
             <right_joint>rear_right_wheel_joint</right_joint>
 
-            <!-- Kinematics -->
+            <!-- Kinematic dimensions -->
             <wheel_separation>${base_width + wheel_width}</wheel_separation>
             <wheel_radius>${wheel_radius}</wheel_radius>
 
-            <!-- Limits & Torque -->
+            <!-- Dynamic limits -->
             <max_linear_acceleration>5.0</max_linear_acceleration>
             <max_angular_acceleration>5.0</max_angular_acceleration>
             <max_wheel_torque>50.0</max_wheel_torque>
 
-            <!-- Topics & Frames (use leading slash to bind to global topics matching ros_gz_bridge) -->
+            <!-- Topics & coordinate frames -->
             <topic>/cmd_vel</topic>
             <odom_topic>/odom</odom_topic>
             <tf_topic>/tf</tf_topic>
             <frame_id>odom</frame_id>
             <child_frame_id>base_link</child_frame_id>
             <odom_publish_frequency>50</odom_publish_frequency>
+        </plugin>
+
+        <!-- ================= Joint Position Controllers ================= -->
+
+        <!-- Position Controller: Controls top rotating platform (wheel_joint) -->
+        <plugin filename="gz-sim-joint-position-controller-system"
+                name="gz::sim::systems::JointPositionController">
+            <joint_name>wheel_joint</joint_name>
+            <topic>/top_wheel/cmd_pos</topic>
+            <!-- PID gains & anti-windup/torque limits -->
+            <p_gain>50.0</p_gain>
+            <i_gain>0.1</i_gain>
+            <d_gain>1.0</d_gain>
+            <i_max>1.0</i_max>
+            <i_min>-1.0</i_min>
+            <cmd_max>100.0</cmd_max>
+            <cmd_min>-100.0</cmd_min>
+        </plugin>
+
+        <!-- Position Controller: Controls lower arm joint (arm_joint_1) -->
+        <plugin filename="gz-sim-joint-position-controller-system"
+                name="gz::sim::systems::JointPositionController">
+            <joint_name>arm_joint_1</joint_name>
+            <topic>/arm_joint_1/cmd_pos</topic>
+            <p_gain>50.0</p_gain>
+            <i_gain>0.1</i_gain>
+            <d_gain>1.0</d_gain>
+            <i_max>1.0</i_max>
+            <i_min>-1.0</i_min>
+            <cmd_max>100.0</cmd_max>
+            <cmd_min>-100.0</cmd_min>
+        </plugin>
+
+        <!-- Position Controller: Controls upper arm joint (arm_joint_2) -->
+        <plugin filename="gz-sim-joint-position-controller-system"
+                name="gz::sim::systems::JointPositionController">
+            <joint_name>arm_joint_2</joint_name>
+            <topic>/arm_joint_2/cmd_pos</topic>
+            <p_gain>50.0</p_gain>
+            <i_gain>0.1</i_gain>
+            <d_gain>1.0</d_gain>
+            <i_max>1.0</i_max>
+            <i_min>-1.0</i_min>
+            <cmd_max>100.0</cmd_max>
+            <cmd_min>-100.0</cmd_min>
         </plugin>
     </gazebo>
 </robot>
