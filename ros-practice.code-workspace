@@ -19,6 +19,10 @@
         {
             "name": "5.urdf",
             "path": "5.urdf"
+        },
+        {
+            "name": "6.actions",
+            "path": "6.actions"
         }
     ],
     "settings": {
