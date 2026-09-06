@@ -29,20 +29,22 @@ colcon build
 colcon build --packages-select action_py_pkg
 colcon build --packages-select action_cpp_pkg
 
-# run node
-ros2 run action_py_pkg acc_server
-ros2 run action_py_pkg acc_client
-ros2 run action_cpp_pkg acc_server
-ros2 run action_cpp_pkg acc_client
+# launch turtlesim and server node together (default: client disabled)
+ros2 launch action_py_pkg turtle_action.launch.py
 
-# with different node names
-ros2 run action_py_pkg acc_server --ros-args -r __node:=server
-ros2 run action_py_pkg acc_client --ros-args -r __node:=client1
-ros2 run action_py_pkg acc_client --ros-args -r __node:=client2
+# launch turtlesim, server, AND client all together
+ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true
+# or using XML
+ros2 launch action_py_pkg turtle_action.launch.xml launch_client:=true
+# or using C++ package
+ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
 
-# with different action names
-ros2 run action_py_pkg acc_server --ros-args -r __node:=server -r /accumulate:=/accumulate1
-ros2 run action_py_pkg acc_client --ros-args -r __node:=client1 -r /accumulate:=/accumulate1
+# run nodes manually
+ros2 run turtlesim turtlesim_node
+ros2 run action_py_pkg turtle_action_server
+ros2 run action_py_pkg turtle_action_client
+ros2 run action_cpp_pkg turtle_action_server
+ros2 run action_cpp_pkg turtle_action_client
 
 # list running nodes
 ros2 node list

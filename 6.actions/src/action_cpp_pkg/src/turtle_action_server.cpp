@@ -1,13 +1,12 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
-class AccServerNode : public rclcpp::Node
+class TurtleActionServerNode : public rclcpp::Node
 {
 public:
-    AccServerNode() : Node("acc_server_node")
+    TurtleActionServerNode() : Node("turtle_action_server")
     {
-        RCLCPP_INFO(this->get_logger(), "Accumulate Action Server Node has been started!");
-        // Create an action server
+        RCLCPP_INFO(this->get_logger(), "Turtle Action Server Node has been started (no actions yet)!");
     }
 };
 
@@ -17,7 +16,7 @@ int main(int argc, char *argv[])
     rclcpp::init(argc, argv);
 
     // Create a custom node
-    auto node = std::make_shared<AccServerNode>();
+    auto node = std::make_shared<TurtleActionServerNode>();
     // Keep the node alive until it is shut down
     rclcpp::spin(node);
     // Destroy the node

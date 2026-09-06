@@ -11,14 +11,18 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 
-add_executable(acc_server src/acc_server.cpp)
-add_executable(acc_client src/acc_client.cpp)
-ament_target_dependencies(acc_server rclcpp rclcpp_action)
-ament_target_dependencies(acc_client rclcpp rclcpp_action)
+add_executable(turtle_action_server src/turtle_action_server.cpp)
+add_executable(turtle_action_client src/turtle_action_client.cpp)
+ament_target_dependencies(turtle_action_server rclcpp rclcpp_action)
+ament_target_dependencies(turtle_action_client rclcpp rclcpp_action)
 install(TARGETS
-  acc_server
-  acc_client
+  turtle_action_server
+  turtle_action_client
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
