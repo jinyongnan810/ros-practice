@@ -67,6 +67,36 @@ ros2 interface show custom_interfaces/action/MoveToGoal
 # send action goal directly from CLI (with feedback)
 ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 8.0, target_y: 8.0, linear_velocity: 2.0}" --feedback
 
+# test preemption: send goal 1, then immediately send goal 2 from another terminal
+# terminal A:
+ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 2.0, target_y: 2.0, linear_velocity: 1.0}" --feedback
+# terminal B (while goal 1 is still moving):
+ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 9.0, target_y: 9.0, linear_velocity: 2.5}" --feedback
+
 # check node graph
 rqt_graph
 ```
+
+---
+
+### 💡 Tips & Best Practices
+
+#### 1. Rate-Regulated Loop vs. Fixed `sleep()`
+Always prefer ROS 2 `Rate` objects over fixed `time.sleep()` / `sleep()` in control and action execution loops:
+- **Python**: `loop_rate = self.create_rate(10)` $\rightarrow$ `loop_rate.sleep()`
+- **C++**: `rclcpp::Rate loop_rate(10);` $\rightarrow$ `loop_rate.sleep();`
+
+**Key Advantages**:
+- **Drift Compensation**: If computation (math, coordinate transforms, feedback publishing) takes 20 ms, a fixed `sleep(0.1)` yields a 120 ms cycle (8.3 Hz instead of 10 Hz), causing clock drift. `Rate.sleep()` automatically measures the elapsed execution time and sleeps only the remaining 80 ms to maintain a precise 10 Hz cycle.
+- **Simulation Time Awareness (`use_sim_time`)**: `Rate` respects the ROS clock (`/clock`). When Gazebo or simulation time slows down, speeds up, or pauses, `Rate.sleep()` synchronizes accordingly. In contrast, fixed `sleep()` strictly uses the host's real wall-clock time.
+
+#### 2. Goal Preemption Policy
+ROS 2 actions are unopinionated about concurrency by default. For a single actuator/robot:
+- Track `active_goal_handle` protected by a lock (`threading.Lock` / `std::mutex`).
+- When a new goal arrives, assign it as the active goal.
+- On each tick of the running loop, check `if goal_handle != active_goal_handle`. If preempted, call `goal_handle.abort()` and exit gracefully without stopping the turtle so the new goal takes over steering immediately.
+
+#### 3. Concurrency in Python Action Servers
+If `execute_callback` runs a continuous control loop, a single-threaded executor would block incoming subscriber callbacks (such as `/turtle1/pose`). To keep pose updates flowing:
+- Assign both the subscriber and the action server to a `ReentrantCallbackGroup`.
+- Run the node using `MultiThreadedExecutor`.

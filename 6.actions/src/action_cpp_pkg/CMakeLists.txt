@@ -10,12 +10,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(turtlesim REQUIRED)
 find_package(custom_interfaces REQUIRED)
 
 add_executable(turtle_action_server src/turtle_action_server.cpp)
 add_executable(turtle_action_client src/turtle_action_client.cpp)
-ament_target_dependencies(turtle_action_server rclcpp rclcpp_action custom_interfaces)
-ament_target_dependencies(turtle_action_client rclcpp rclcpp_action custom_interfaces)
+ament_target_dependencies(turtle_action_server rclcpp rclcpp_action geometry_msgs turtlesim custom_interfaces)
+ament_target_dependencies(turtle_action_client rclcpp rclcpp_action geometry_msgs turtlesim custom_interfaces)
 install(TARGETS
   turtle_action_server
   turtle_action_client
