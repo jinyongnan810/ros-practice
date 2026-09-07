@@ -1,0 +1,14 @@
+# Goal: Target coordinates and desired linear velocity
+float32 target_x
+float32 target_y
+float32 linear_velocity
+---
+# Result: Final status and journey statistics
+bool success
+float32 total_distance
+float32 elapsed_time
+---
+# Feedback: Current position and remaining distance to target
+float32 current_distance
+float32 current_x
+float32 current_y

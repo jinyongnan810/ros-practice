@@ -26,6 +26,7 @@ ros2 pkg create custom_interfaces --build-type ament_cmake
 # build all pkgs
 colcon build
 # build one pkg
+colcon build --packages-select custom_interfaces
 colcon build --packages-select action_py_pkg
 colcon build --packages-select action_cpp_pkg
 
@@ -50,7 +51,7 @@ ros2 run action_cpp_pkg turtle_action_client
 ros2 node list
 
 # see node info
-ros2 node info /acc_server_node
+ros2 node info /turtle_action_server
 
 # list actions
 ros2 action list
@@ -58,13 +59,13 @@ ros2 action list
 ros2 action list -t
 
 # inspect action details (servers and clients)
-ros2 action info /accumulate
+ros2 action info /move_to_goal
 
 # inspect action interface definition (.action)
-ros2 interface show <package_name>/action/<ActionName>
+ros2 interface show custom_interfaces/action/MoveToGoal
 
 # send action goal directly from CLI (with feedback)
-ros2 action send_goal /accumulate <package_name>/action/<ActionName> "{<goal_field>: <value>}" --feedback
+ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 8.0, target_y: 8.0, linear_velocity: 2.0}" --feedback
 
 # check node graph
 rqt_graph
