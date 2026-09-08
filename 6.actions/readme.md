@@ -43,9 +43,17 @@ ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
 # run nodes manually
 ros2 run turtlesim turtlesim_node
 ros2 run action_py_pkg turtle_action_server
-ros2 run action_py_pkg turtle_action_client
 ros2 run action_cpp_pkg turtle_action_server
+
+# run client with default target (8.5, 8.5)
+ros2 run action_py_pkg turtle_action_client
 ros2 run action_cpp_pkg turtle_action_client
+
+# run client with custom target coordinates and speed
+ros2 run action_py_pkg turtle_action_client --ros-args -p target_x:=3.0 -p target_y:=7.0 -p linear_velocity:=2.5
+
+# run client with automatic cancellation after 2 seconds
+ros2 run action_py_pkg turtle_action_client --ros-args -p target_x:=1.0 -p target_y:=1.0 -p cancel_after_sec:=2.0
 
 # list running nodes
 ros2 node list
