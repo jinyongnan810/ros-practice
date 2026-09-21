@@ -1,0 +1,36 @@
+<launch>
+  <arg
+    name="auto_manage"
+    default="false"
+    description="Whether to run the lifecycle manager to automate state transitions across all nodes"
+  />
+  <arg
+    name="frequency"
+    default="1.0"
+    description="Publish frequency in Hz for the sensor stations"
+  />
+
+  <!-- Station 1 (Alpha) -->
+  <node pkg="lifecycle_cpp_pkg" exec="sensor_station" name="sensor_station_1" output="screen">
+    <param name="sensor_name" value="station_alpha" />
+    <param name="topic_name" value="sensor_data" />
+    <param name="publish_frequency" value="$(var frequency)" />
+  </node>
+
+  <!-- Station 2 (Beta) -->
+  <node pkg="lifecycle_cpp_pkg" exec="sensor_station" name="sensor_station_2" output="screen">
+    <param name="sensor_name" value="station_beta" />
+    <param name="topic_name" value="sensor_data" />
+    <param name="publish_frequency" value="$(var frequency)" />
+  </node>
+
+  <!-- Observer Monitor -->
+  <node pkg="lifecycle_cpp_pkg" exec="sensor_monitor" name="sensor_monitor" output="screen">
+    <param name="topic_name" value="sensor_data" />
+  </node>
+
+  <!-- Automated Lifecycle Manager -->
+  <node pkg="lifecycle_cpp_pkg" exec="lifecycle_manager" name="lifecycle_manager" output="screen" if="$(var auto_manage)">
+    <param name="managed_nodes" value="sensor_station_1,sensor_station_2" value-sep="," />
+  </node>
+</launch>

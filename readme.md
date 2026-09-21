@@ -49,6 +49,15 @@ ros-practice/
 ├── 5.urdf/                 # Robot URDF/Xacro modeling & Gazebo Sim simulation
 │   └── src/
 │       └── simple_car_description # Robot description, meshes, forest world, Gazebo plugins & launch
+├── 6.actions/              # Action Client/Server Architecture & Turtlesim Navigation
+│   └── src/
+│       ├── custom_interfaces # Custom MoveToGoal.action
+│       ├── action_cpp_pkg    # C++ action server, client & launch
+│       └── action_py_pkg     # Python action server, client & launch
+├── 7.lifecycle/            # Managed Nodes, Lifecycle Publishers & Multi-Node Synchronization
+│   └── src/
+│       ├── lifecycle_cpp_pkg # C++ sensor station, monitor, lifecycle manager & launch
+│       └── lifecycle_py_pkg  # Python sensor station, monitor, lifecycle manager & launch
 └── ros-practice.code-workspace # VS Code multi-root workspace configuration
 ```
 
@@ -213,7 +222,50 @@ Robot kinematics modeling with URDF/Xacro, Gazebo Sim Harmonic physics simulatio
     - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `wheel.xacro`, `inertias.xacro`, `gazebo.xacro`).
     - `worlds/`: `forest.sdf` featuring Pine & Oak trees from Gazebo Fuel (`app.gazebosim.org`), realistic lighting, and grass ground.
     - `config/`: `gazebo_bridge.yaml` bridging `/clock`, `/joint_states`, `/cmd_vel`, `/odom`, and `/tf`.
-    - `launch/`: Python and XML launch files for RViz display (`display.launch.*`) and Gazebo Sim world execution (`gazebo.launch.*`).
+
+---
+
+### 6. Actions (`6.actions/`)
+Client-server communication architecture for long-running, preemptible tasks with asynchronous feedback and cancellation. Demonstrates moving turtles in Turtlesim to target coordinates with real-time feedback and goal preemption.
+
+- **Packages:**
+  - `custom_interfaces`: `MoveToGoal.action` (`float64 target_x, target_y, linear_velocity` $\rightarrow$ `bool success, float64 total_distance, elapsed_time` $\rightarrow$ `float64 current_x, current_y, distance_to_goal`).
+  - `action_cpp_pkg`: C++ action server and client with launch integration.
+  - `action_py_pkg`: Python action server and client with launch integration.
+
+---
+
+### 7. Lifecycle Nodes & Publishers (`7.lifecycle/`)
+Deterministic, state-machine-driven managed nodes and lifecycle-aware publishers. Demonstrates multi-sensor simultaneous state transitions, suppressing messages while inactive, and coordinated multi-node orchestration.
+
+```mermaid
+flowchart LR
+    subgraph Managed Nodes
+        S1["sensor_station_1<br/>(Alpha)"]
+        S2["sensor_station_2<br/>(Beta)"]
+    end
+    subgraph Topic
+        T["/sensor_data<br/>(LifecyclePublisher)"]
+    end
+    subgraph Observer
+        M["sensor_monitor"]
+    end
+    S1 -- "Active Only" --> T
+    S2 -- "Active Only" --> T
+    T --> M
+```
+
+- **Packages:**
+  - `lifecycle_cpp_pkg`:
+    - `sensor_station`: C++ `LifecycleNode` with `LifecyclePublisher`.
+    - `sensor_monitor`: Standard C++ subscriber monitoring stream health.
+    - `lifecycle_manager`: Programmatic service client coordinating simultaneous transitions across multiple nodes.
+  - `lifecycle_py_pkg`:
+    - Python implementations of sensor stations, monitor, and lifecycle manager.
+- **Key Features:**
+  - Strict lifecycle state transitions: `on_configure`, `on_activate`, `on_deactivate`, `on_cleanup`, `on_shutdown`.
+  - Lifecycle publishers automatically mute topic publishing when `inactive` or `unconfigured`.
+  - Coordinated multi-node simultaneous state transitions via CLI, programmatic service clients, and launch files.
 
 ---
 
@@ -306,6 +358,35 @@ ros2 launch simple_car_description gazebo.launch.py
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 
+#### Running 6.actions (Turtlesim Navigation & Feedback)
+```bash
+cd 6.actions
+colcon build && source install/setup.bash
+
+# Launch Turtlesim, server, and client together
+ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
+# Or Python
+ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true
+```
+
+#### Running 7.lifecycle (Managed Nodes & Coordinated Activation)
+```bash
+cd 7.lifecycle
+colcon build && source install/setup.bash
+
+# Interactive manual CLI control (nodes start UNCONFIGURED)
+ros2 launch lifecycle_cpp_pkg lifecycle.launch.py
+
+# In another terminal: transition both nodes simultaneously
+ros2 lifecycle set /sensor_station_1 configure && ros2 lifecycle set /sensor_station_2 configure
+ros2 lifecycle set /sensor_station_1 activate && ros2 lifecycle set /sensor_station_2 activate
+
+# Or automated coordinated lifecycle orchestration
+ros2 launch lifecycle_cpp_pkg lifecycle.launch.py auto_manage:=true
+# Or Python
+ros2 launch lifecycle_py_pkg lifecycle.launch.py auto_manage:=true
+```
+
 ---
 
 ## ⚡ ROS 2 Essential Command Reference
@@ -347,4 +428,25 @@ ros2 param dump /news_station_node           # Dump parameters to YAML
 ros2 bag record -o test_run /turtle1/pose /turtle1/cmd_vel
 ros2 bag info test_run
 ros2 bag play test_run
+```
+
+### Action Operations
+```bash
+ros2 action list -t                          # List active action servers and clients with types
+ros2 action info /move_to_goal               # Inspect action details
+ros2 interface show custom_interfaces/action/MoveToGoal
+ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 8.0, target_y: 8.0, linear_velocity: 2.0}" --feedback
+```
+
+### Lifecycle Operations
+```bash
+ros2 lifecycle get /sensor_station_1         # Query current state
+ros2 lifecycle list /sensor_station_1        # List available transitions
+ros2 lifecycle set /sensor_station_1 configure
+ros2 lifecycle set /sensor_station_1 activate
+ros2 lifecycle set /sensor_station_1 deactivate
+ros2 lifecycle set /sensor_station_1 cleanup
+ros2 lifecycle set /sensor_station_1 shutdown
+# Multi-node simultaneous activation:
+ros2 lifecycle set /sensor_station_1 activate && ros2 lifecycle set /sensor_station_2 activate
 ```

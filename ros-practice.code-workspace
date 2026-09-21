@@ -23,6 +23,10 @@
         {
             "name": "6.actions",
             "path": "6.actions"
+        },
+        {
+            "name": "7.lifecycle",
+            "path": "7.lifecycle"
         }
     ],
     "settings": {
