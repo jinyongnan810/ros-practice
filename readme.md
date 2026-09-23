@@ -230,7 +230,7 @@ Client-server communication architecture for long-running, preemptible tasks wit
 
 - **Packages:**
   - `custom_interfaces`: `MoveToGoal.action` (`float64 target_x, target_y, linear_velocity` $\rightarrow$ `bool success, float64 total_distance, elapsed_time` $\rightarrow$ `float64 current_x, current_y, distance_to_goal`).
-  - `action_cpp_pkg`: C++ action server and client with launch integration.
+  - `action_cpp_pkg`: C++ action server and client implemented as ROS 2 components (`rclcpp_components`) with component container launch integration and standalone executables.
   - `action_py_pkg`: Python action server and client with launch integration.
 
 ---
@@ -363,7 +363,9 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 cd 6.actions
 colcon build && source install/setup.bash
 
-# Launch Turtlesim, server, and client together
+# Launch Turtlesim, server, and client via component container (C++)
+ros2 launch action_cpp_pkg turtle_action_component.launch.py launch_client:=true
+# Or standalone processes (C++)
 ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
 # Or Python
 ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true

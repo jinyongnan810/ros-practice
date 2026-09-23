@@ -1,0 +1,32 @@
+<launch>
+  <arg
+    name="launch_client"
+    default="false"
+    description="Whether to load the action client component alongside turtlesim and server"
+  />
+  <arg name="target_x" default="8.5" description="Target X coordinate for the action client" />
+  <arg name="target_y" default="8.5" description="Target Y coordinate for the action client" />
+  <arg name="linear_velocity" default="2.0" description="Target linear velocity for the turtle" />
+  <arg name="cancel_after_sec" default="0.0" description="Auto-cancellation delay in seconds (0.0 to disable)" />
+
+  <!-- Turtlesim simulator node -->
+  <node pkg="turtlesim" exec="turtlesim_node" name="turtlesim" />
+
+  <!-- Component container hosting the composable action nodes -->
+  <node_container pkg="rclcpp_components" exec="component_container" name="turtle_action_container" namespace="">
+    <composable_node pkg="action_cpp_pkg" plugin="action_cpp_pkg::TurtleActionServerNode" name="turtle_action_server">
+      <extra_arg name="use_intra_process_comms" value="true" />
+    </composable_node>
+  </node_container>
+
+  <!-- Conditionally load action client component -->
+  <load_composable_node target="turtle_action_container" if="$(var launch_client)">
+    <composable_node pkg="action_cpp_pkg" plugin="action_cpp_pkg::TurtleActionClientNode" name="turtle_action_client">
+      <param name="target_x" value="$(var target_x)" />
+      <param name="target_y" value="$(var target_y)" />
+      <param name="linear_velocity" value="$(var linear_velocity)" />
+      <param name="cancel_after_sec" value="$(var cancel_after_sec)" />
+      <extra_arg name="use_intra_process_comms" value="true" />
+    </composable_node>
+  </load_composable_node>
+</launch>

@@ -33,12 +33,27 @@ colcon build --packages-select action_cpp_pkg
 # launch turtlesim and server node together (default: client disabled)
 ros2 launch action_py_pkg turtle_action.launch.py
 
-# launch turtlesim, server, AND client all together
+# launch turtlesim, server, AND client all together (standalone processes)
 ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true
 # or using XML
 ros2 launch action_py_pkg turtle_action.launch.xml launch_client:=true
 # or using C++ package
 ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
+
+# launch via ROS 2 Component Container (shared process composition)
+ros2 launch action_cpp_pkg turtle_action_component.launch.py launch_client:=true
+# or using XML
+ros2 launch action_cpp_pkg turtle_action_component.launch.xml launch_client:=true
+
+# component CLI commands
+ros2 component types
+ros2 component list
+# manually load components into container
+ros2 component load /turtle_action_container action_cpp_pkg action_cpp_pkg::TurtleActionClientNode \
+  --node-name turtle_action_client_2 \
+  -p target_x:=2.0 -p target_y:=3.0 -p linear_velocity:=2.5
+# unload component by ID
+ros2 component unload /turtle_action_container 3
 
 # run nodes manually
 ros2 run turtlesim turtlesim_node
@@ -108,3 +123,10 @@ ROS 2 actions are unopinionated about concurrency by default. For a single actua
 If `execute_callback` runs a continuous control loop, a single-threaded executor would block incoming subscriber callbacks (such as `/turtle1/pose`). To keep pose updates flowing:
 - Assign both the subscriber and the action server to a `ReentrantCallbackGroup`.
 - Run the node using `MultiThreadedExecutor`.
+
+#### 4. ROS 2 Components & Composition (`rclcpp_components`)
+Rather than running each node in its own operating system process:
+- **Shared Memory & Zero-Copy IPC**: Composing nodes into a single `component_container` allows inter-node communication to bypass network serialization and socket buffers when `use_intra_process_comms` is enabled.
+- **Resource Efficiency**: Multiple nodes share a single process footprint and executor, significantly lowering thread overhead, CPU context switching, and memory usage.
+- **Dual-Mode Build**: By using `rclcpp_components_register_node(..., EXECUTABLE ...)`, nodes are compiled into reusable shared libraries (`.so` / `.dylib`) for dynamic loading into containers, while automatically generating standalone executables for traditional `ros2 run` invocations.
+- **Dynamic Loading & Unloading**: Components can be loaded, configured, and unloaded dynamically at runtime without restarting the host container or other sibling nodes.
