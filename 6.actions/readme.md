@@ -11,101 +11,142 @@ Actions have following features:
 - **Preemptible / Cancellable**: Clients can request cancellation of an active goal at any point during execution.
 - **Composed of Topics & Services**: Under the hood, ROS 2 actions are implemented using multiple topics (feedback, status) and services (send goal, cancel goal, get result).
 
-### Commands
+---
+
+## 📋 Commands Guide
+
+### 1. Workspace & Package Setup
 ```bash
-# enable env
+# Enable environment (if using direnv)
 direnv allow
 
-# create python pkg
+# Create packages
 ros2 pkg create action_py_pkg --build-type ament_python --dependencies rclpy
-# create c++ pkg
-ros2 pkg create action_cpp_pkg --build-type ament_cmake --dependencies rclcpp rclcpp_action
-# create custom interface pkg (if defining a custom action, e.g. CountUntil.action)
+ros2 pkg create action_cpp_pkg --build-type ament_cmake --dependencies rclcpp rclcpp_action rclcpp_components
 ros2 pkg create custom_interfaces --build-type ament_cmake
 
-# build all pkgs
+# Build workspace
 colcon build
-# build one pkg
+
+# Build individual packages
 colcon build --packages-select custom_interfaces
 colcon build --packages-select action_py_pkg
 colcon build --packages-select action_cpp_pkg
 
-# launch turtlesim and server node together (default: client disabled)
+# Source workspace overlay
+source install/setup.bash
+```
+
+### 2. Launching — Turtlesim 2D Simulation
+Launch turtlesim alongside the action server (and optionally the client).
+
+```bash
+# Launch turtlesim and action server (Python)
 ros2 launch action_py_pkg turtle_action.launch.py
 
-# launch turtlesim, server, AND client all together (standalone processes)
+# Launch turtlesim, server, AND client (Python)
 ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true
-# or using XML
 ros2 launch action_py_pkg turtle_action.launch.xml launch_client:=true
-# or using C++ package
-ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
 
-# launch via ROS 2 Component Container (shared process composition)
+# Launch turtlesim, server, AND client (C++)
+ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
+ros2 launch action_cpp_pkg turtle_action.launch.xml launch_client:=true
+
+# Launch with custom client navigation parameters
+ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true target_x:=3.0 target_y:=7.0 linear_velocity:=2.5
+```
+
+### 3. Launching — ROS 2 Components & Composition
+Run nodes composed inside a single `component_container` process for shared-memory zero-copy IPC and reduced resource overhead.
+
+```bash
+# Launch server and client composed in a component container (Python launch)
 ros2 launch action_cpp_pkg turtle_action_component.launch.py launch_client:=true
-# or using XML
+
+# Launch via XML
 ros2 launch action_cpp_pkg turtle_action_component.launch.xml launch_client:=true
 
-# launch Gazebo simulation with TurtleBot3 (burger/waffle) and action server
-ros2 launch action_cpp_pkg turtlebot3_action.launch.py
-# launch Gazebo, TurtleBot3, AND action client (moves robot in 3D physics)
-ros2 launch action_cpp_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
-# or using XML
-ros2 launch action_cpp_pkg turtlebot3_action.launch.xml launch_client:=true target_x:=2.0 target_y:=2.0
-# or using Python package
-ros2 launch action_py_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
-
-# component CLI commands
+# Inspect available component types
 ros2 component types
+
+# List active containers and loaded components
 ros2 component list
-# manually load components into container
+
+# Dynamically load a component into a running container at runtime
 ros2 component load /turtle_action_container action_cpp_pkg action_cpp_pkg::TurtleActionClientNode \
   --node-name turtle_action_client_2 \
   -p target_x:=2.0 -p target_y:=3.0 -p linear_velocity:=2.5
-# unload component by ID
-ros2 component unload /turtle_action_container 3
 
-# run nodes manually
+# Unload a component by its unique ID
+ros2 component unload /turtle_action_container 3
+```
+
+### 4. Launching — 3D Gazebo Simulation (TurtleBot3)
+Simulate realistic physics navigation in Gazebo Sim (Harmonic in ROS 2 Jazzy).
+
+```bash
+# Install simulation dependencies (if not already installed)
+sudo apt install -y ros-jazzy-turtlebot3-gazebo ros-jazzy-turtlebot3-simulations
+
+# Launch Gazebo world with TurtleBot3 and action server (C++)
+ros2 launch action_cpp_pkg turtlebot3_action.launch.py
+
+# Launch Gazebo, TurtleBot3, AND action client (C++)
+ros2 launch action_cpp_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
+
+# Launch Gazebo, TurtleBot3, AND action client (Python)
+ros2 launch action_py_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
+ros2 launch action_py_pkg turtlebot3_action.launch.xml launch_client:=true target_x:=2.0 target_y:=2.0
+```
+
+### 5. Running Individual Nodes (`ros2 run`)
+Run individual nodes in separate terminal windows for manual debugging.
+
+```bash
+# Terminal 1: Turtlesim window
 ros2 run turtlesim turtlesim_node
+
+# Terminal 2: Action server (choose Python or C++)
 ros2 run action_py_pkg turtle_action_server
 ros2 run action_cpp_pkg turtle_action_server
 
-# run client with default target (8.5, 8.5)
+# Terminal 3: Action client (default target: 8.5, 8.5)
 ros2 run action_py_pkg turtle_action_client
 ros2 run action_cpp_pkg turtle_action_client
 
-# run client with custom target coordinates and speed
+# Run client with custom target coordinates and linear speed
 ros2 run action_py_pkg turtle_action_client --ros-args -p target_x:=3.0 -p target_y:=7.0 -p linear_velocity:=2.5
 
-# run client with automatic cancellation after 2 seconds
+# Run client with auto-cancellation after 2 seconds
 ros2 run action_py_pkg turtle_action_client --ros-args -p target_x:=1.0 -p target_y:=1.0 -p cancel_after_sec:=2.0
+```
 
-# list running nodes
+### 6. Introspection, CLI Testing & Preemption
+```bash
+# List active nodes and inspect node info
 ros2 node list
-
-# see node info
 ros2 node info /turtle_action_server
 
-# list actions
+# List actions
 ros2 action list
-# list actions with types
 ros2 action list -t
 
-# inspect action details (servers and clients)
+# Inspect action server/client endpoints
 ros2 action info /move_to_goal
 
-# inspect action interface definition (.action)
+# View action interface structure (Goal, Result, Feedback)
 ros2 interface show custom_interfaces/action/MoveToGoal
 
-# send action goal directly from CLI (with feedback)
+# Send an action goal directly from CLI (with live feedback)
 ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 8.0, target_y: 8.0, linear_velocity: 2.0}" --feedback
 
-# test preemption: send goal 1, then immediately send goal 2 from another terminal
-# terminal A:
+# Test goal preemption: send Goal 1, then immediately send Goal 2 to preempt it
+# Terminal A:
 ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 2.0, target_y: 2.0, linear_velocity: 1.0}" --feedback
-# terminal B (while goal 1 is still moving):
+# Terminal B (while Goal 1 is still moving):
 ros2 action send_goal /move_to_goal custom_interfaces/action/MoveToGoal "{target_x: 9.0, target_y: 9.0, linear_velocity: 2.5}" --feedback
 
-# check node graph
+# Visualize computation graph
 rqt_graph
 ```
 
