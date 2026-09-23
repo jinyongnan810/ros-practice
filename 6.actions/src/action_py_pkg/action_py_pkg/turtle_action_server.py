@@ -3,7 +3,8 @@ import math
 import threading
 
 import rclpy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, TwistStamped
+from nav_msgs.msg import Odometry
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -11,31 +12,57 @@ from rclpy.node import Node
 from turtlesim.msg import Pose
 
 from custom_interfaces.action import MoveToGoal
+import os
 
 
 class TurtleActionServer(Node):
-    """Action server that drives turtle1 to a requested (target_x, target_y) coordinate."""
+    """Action server that drives turtle1/TurtleBot3 to a requested (target_x, target_y) coordinate."""
 
     def __init__(self):
         super().__init__("turtle_action_server")
 
         self.cb_group = ReentrantCallbackGroup()
 
+        # Coordinate boundary configuration (relaxed by default for open Gazebo worlds)
+        self.declare_parameter("enforce_canvas_bounds", False)
+        self.declare_parameter("min_x", -20.0)
+        self.declare_parameter("max_x", 20.0)
+        self.declare_parameter("min_y", -20.0)
+        self.declare_parameter("max_y", 20.0)
+
+        # Velocity message type: ROS 2 Jazzy uses TwistStamped on /cmd_vel for Gazebo Harmonic
+        default_stamped = os.environ.get("ROS_DISTRO", "jazzy") != "humble"
+        self.declare_parameter("use_stamped_vel", default_stamped)
+        self.use_stamped_vel = self.get_parameter("use_stamped_vel").get_parameter_value().bool_value
+
         # Goal tracking for preemption
         self.active_goal_handle = None
         self.goal_lock = threading.Lock()
 
-        # Turtle state
+        # Turtle / Robot state
         self.current_pose = None
 
-        # Velocity publisher
+        # Velocity publishers:
+        # - /turtle1/cmd_vel: always geometry_msgs/msg/Twist for Turtlesim
+        # - /cmd_vel: TwistStamped for ROS 2 Jazzy Gazebo Harmonic bridge, or Twist for Humble
         self.cmd_vel_pub = self.create_publisher(Twist, "/turtle1/cmd_vel", 10)
+        if self.use_stamped_vel:
+            self.tb3_cmd_vel_pub = self.create_publisher(TwistStamped, "/cmd_vel", 10)
+        else:
+            self.tb3_cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel", 10)
 
-        # Pose subscriber
+        # Pose / Odometry subscribers (dual support: Turtlesim Pose & Gazebo Odometry)
         self.pose_sub = self.create_subscription(
             Pose,
             "/turtle1/pose",
             self.handle_pose,
+            10,
+            callback_group=self.cb_group,
+        )
+        self.odom_sub = self.create_subscription(
+            Odometry,
+            "/odom",
+            self.handle_odom,
             10,
             callback_group=self.cb_group,
         )
@@ -54,23 +81,39 @@ class TurtleActionServer(Node):
         self.get_logger().info("Turtle Action Server has been started! Action: /move_to_goal")
 
     def handle_pose(self, msg: Pose):
-        """Update the latest known pose of turtle1."""
+        """Update the latest known pose from Turtlesim."""
         self.current_pose = msg
 
+    def handle_odom(self, msg: Odometry):
+        """Update the latest known pose from Gazebo / TurtleBot3 Odometry."""
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        q = msg.pose.pose.orientation
+        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+        theta = math.atan2(siny_cosp, cosy_cosp)
+        self.current_pose = Pose(x=float(x), y=float(y), theta=float(theta))
+
     def goal_callback(self, goal_request: MoveToGoal.Goal):
-        """Validate the requested target coordinates within the Turtlesim boundary [0, 11]."""
+        """Validate the requested target coordinates within acceptable boundaries."""
         self.get_logger().info(
             f"Received goal request: target=({goal_request.target_x:.2f}, {goal_request.target_y:.2f}), "
             f"velocity={goal_request.linear_velocity:.2f}"
         )
 
-        if 0.0 <= goal_request.target_x <= 11.0 and 0.0 <= goal_request.target_y <= 11.0:
+        enforce_bounds = self.get_parameter("enforce_canvas_bounds").get_parameter_value().bool_value
+        min_x = 0.0 if enforce_bounds else self.get_parameter("min_x").get_parameter_value().double_value
+        max_x = 11.0 if enforce_bounds else self.get_parameter("max_x").get_parameter_value().double_value
+        min_y = 0.0 if enforce_bounds else self.get_parameter("min_y").get_parameter_value().double_value
+        max_y = 11.0 if enforce_bounds else self.get_parameter("max_y").get_parameter_value().double_value
+
+        if min_x <= goal_request.target_x <= max_x and min_y <= goal_request.target_y <= max_y:
             self.get_logger().info("Target within boundary. Accepting goal.")
             return GoalResponse.ACCEPT
         else:
             self.get_logger().warn(
                 f"Rejecting goal: target ({goal_request.target_x:.2f}, {goal_request.target_y:.2f}) "
-                "is outside Turtlesim canvas boundary [0.0, 11.0]!"
+                f"is outside boundary [{min_x:.1f}, {max_x:.1f}]!"
             )
             return GoalResponse.REJECT
 
@@ -80,9 +123,16 @@ class TurtleActionServer(Node):
         return CancelResponse.ACCEPT
 
     def stop_turtle(self):
-        """Halt turtle motion by publishing zero velocity."""
+        """Halt robot motion by publishing zero velocity to both Turtlesim and Gazebo."""
         stop_cmd = Twist()
         self.cmd_vel_pub.publish(stop_cmd)
+        if self.use_stamped_vel:
+            stop_stamped = TwistStamped()
+            stop_stamped.header.stamp = self.get_clock().now().to_msg()
+            stop_stamped.header.frame_id = "base_footprint"
+            self.tb3_cmd_vel_pub.publish(stop_stamped)
+        else:
+            self.tb3_cmd_vel_pub.publish(stop_cmd)
 
     def execute_callback(self, goal_handle):
         """Execute the motion toward the target, publishing feedback and handling cancellation."""
@@ -178,12 +228,24 @@ class TurtleActionServer(Node):
             )
 
             cmd = Twist()
-            cmd.angular.z = 4.0 * heading_error
-            # Advance only when reasonably aligned with target
+            # Clamp angular velocity within physical limits (+-2.0 rad/s)
+            cmd.angular.z = max(-2.0, min(2.0, 2.5 * heading_error))
+            # Advance when reasonably aligned with target
             if abs(heading_error) < 0.5:
                 cmd.linear.x = min(linear_velocity, 1.5 * distance)
 
+            # Publish to Turtlesim (/turtle1/cmd_vel)
             self.cmd_vel_pub.publish(cmd)
+
+            # Publish to TurtleBot3 Gazebo (/cmd_vel)
+            if self.use_stamped_vel:
+                stamped_cmd = TwistStamped()
+                stamped_cmd.header.stamp = self.get_clock().now().to_msg()
+                stamped_cmd.header.frame_id = "base_footprint"
+                stamped_cmd.twist = cmd
+                self.tb3_cmd_vel_pub.publish(stamped_cmd)
+            else:
+                self.tb3_cmd_vel_pub.publish(cmd)
 
             # 6. Publish feedback
             feedback_msg.current_distance = distance

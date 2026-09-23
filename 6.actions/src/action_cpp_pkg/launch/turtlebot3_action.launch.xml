@@ -1,0 +1,31 @@
+<launch>
+  <arg name="model" default="burger" description="TurtleBot3 model type: burger, waffle, or waffle_pi" />
+  <arg name="launch_client" default="false" description="Whether to launch the action client alongside Gazebo and server" />
+  <arg name="target_x" default="2.0" description="Target X coordinate for the action client" />
+  <arg name="target_y" default="2.0" description="Target Y coordinate for the action client" />
+  <arg name="linear_velocity" default="0.22" description="Target linear velocity (default 0.22 m/s for TurtleBot3 burger)" />
+  <arg name="cancel_after_sec" default="0.0" description="Auto-cancellation delay in seconds (0.0 to disable)" />
+
+  <!-- Set environment variable for TurtleBot3 model -->
+  <set_env name="TURTLEBOT3_MODEL" value="$(var model)" />
+
+  <!-- Include TurtleBot3 Gazebo simulation -->
+  <include file="$(find-pkg-share turtlebot3_gazebo)/launch/empty_world.launch.py">
+    <arg name="use_sim_time" value="true" />
+  </include>
+
+  <!-- Action Server Node -->
+  <node pkg="action_cpp_pkg" exec="turtle_action_server" name="turtle_action_server" output="screen">
+    <param name="use_sim_time" value="true" />
+    <param name="use_stamped_vel" value="true" />
+  </node>
+
+  <!-- Action Client Node (optional) -->
+  <node pkg="action_cpp_pkg" exec="turtle_action_client" name="turtle_action_client" output="screen" if="$(var launch_client)">
+    <param name="target_x" value="$(var target_x)" />
+    <param name="target_y" value="$(var target_y)" />
+    <param name="linear_velocity" value="$(var linear_velocity)" />
+    <param name="cancel_after_sec" value="$(var cancel_after_sec)" />
+    <param name="use_sim_time" value="true" />
+  </node>
+</launch>

@@ -45,6 +45,15 @@ ros2 launch action_cpp_pkg turtle_action_component.launch.py launch_client:=true
 # or using XML
 ros2 launch action_cpp_pkg turtle_action_component.launch.xml launch_client:=true
 
+# launch Gazebo simulation with TurtleBot3 (burger/waffle) and action server
+ros2 launch action_cpp_pkg turtlebot3_action.launch.py
+# launch Gazebo, TurtleBot3, AND action client (moves robot in 3D physics)
+ros2 launch action_cpp_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
+# or using XML
+ros2 launch action_cpp_pkg turtlebot3_action.launch.xml launch_client:=true target_x:=2.0 target_y:=2.0
+# or using Python package
+ros2 launch action_py_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
+
 # component CLI commands
 ros2 component types
 ros2 component list
@@ -130,3 +139,10 @@ Rather than running each node in its own operating system process:
 - **Resource Efficiency**: Multiple nodes share a single process footprint and executor, significantly lowering thread overhead, CPU context switching, and memory usage.
 - **Dual-Mode Build**: By using `rclcpp_components_register_node(..., EXECUTABLE ...)`, nodes are compiled into reusable shared libraries (`.so` / `.dylib`) for dynamic loading into containers, while automatically generating standalone executables for traditional `ros2 run` invocations.
 - **Dynamic Loading & Unloading**: Components can be loaded, configured, and unloaded dynamically at runtime without restarting the host container or other sibling nodes.
+
+#### 5. 3D Simulation & Odometry Feedback (Gazebo + TurtleBot3)
+While 2D Turtlesim provides a canvas `[0.0, 11.0]` with absolute coordinates (`turtlesim/msg/Pose`), real and 3D simulated robots (such as TurtleBot3 in Gazebo Sim) operate in continuous open Cartesian space using standard ROS navigation messages:
+- **Pose Source (`nav_msgs/msg/Odometry`)**: The robot's position and orientation quaternion are continuously published to `/odom`. The action server extracts the planar yaw $\theta = \text{atan2}(2(wz + xy), 1 - 2(y^2 + z^2))$ and tracks traveled Euclidean distance.
+- **Velocity Topic (`/cmd_vel`) & `TwistStamped` in ROS 2 Jazzy**: Wheel differential drive commands are sent to `/cmd_vel`. In ROS 2 Jazzy Gazebo Harmonic (`turtlebot3_gazebo`), the `ros_gz_bridge` requires `geometry_msgs/msg/TwistStamped` on `/cmd_vel` rather than bare `Twist`. The action server automatically detects `ROS_DISTRO` (or accepts `use_stamped_vel:=true/false`), publishing `TwistStamped` with headers to `/cmd_vel` while maintaining backwards-compatible `Twist` publishing to `/turtle1/cmd_vel` for Turtlesim.
+- **Simulation Clock (`use_sim_time:=true`)**: Synchronizes the action control loop rate (`Rate(10)`) with Gazebo's `/clock` topic, compensating for physics stepping speed and simulation pause.
+- **Realistic Physical Speeds & Clamped Steering**: Unlike 2D sprites in Turtlesim that can instantly accelerate to 2.0 m/s, physical robots like TurtleBot3 Burger have wheel slip and actuator limits (max linear speed $\approx 0.22\text{ m/s}$, max angular speed $\approx 2.84\text{ rad/s}$). The action server clamps angular speed to $\pm 2.0\text{ rad/s}$ and launch files default linear velocity to $0.22\text{ m/s}$ for smooth, stable physics simulation.

@@ -12,6 +12,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(turtlesim REQUIRED)
 find_package(custom_interfaces REQUIRED)
 
@@ -31,6 +32,7 @@ ament_target_dependencies(turtle_action_server_component
   rclcpp_action
   rclcpp_components
   geometry_msgs
+  nav_msgs
   turtlesim
   custom_interfaces
 )
@@ -58,6 +60,7 @@ ament_target_dependencies(turtle_action_client_component
   rclcpp_action
   rclcpp_components
   geometry_msgs
+  nav_msgs
   turtlesim
   custom_interfaces
 )
@@ -76,6 +79,7 @@ ament_export_dependencies(
   rclcpp_action
   rclcpp_components
   geometry_msgs
+  nav_msgs
   turtlesim
   custom_interfaces
 )

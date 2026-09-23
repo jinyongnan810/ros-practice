@@ -226,12 +226,12 @@ Robot kinematics modeling with URDF/Xacro, Gazebo Sim Harmonic physics simulatio
 ---
 
 ### 6. Actions (`6.actions/`)
-Client-server communication architecture for long-running, preemptible tasks with asynchronous feedback and cancellation. Demonstrates moving turtles in Turtlesim to target coordinates with real-time feedback and goal preemption.
+Client-server communication architecture for long-running, preemptible tasks with asynchronous feedback and cancellation. Demonstrates robot navigation to target coordinates with real-time feedback and goal preemption in both 2D Turtlesim and 3D Gazebo Sim (TurtleBot3).
 
 - **Packages:**
   - `custom_interfaces`: `MoveToGoal.action` (`float64 target_x, target_y, linear_velocity` $\rightarrow$ `bool success, float64 total_distance, elapsed_time` $\rightarrow$ `float64 current_x, current_y, distance_to_goal`).
-  - `action_cpp_pkg`: C++ action server and client implemented as ROS 2 components (`rclcpp_components`) with component container launch integration and standalone executables.
-  - `action_py_pkg`: Python action server and client with launch integration.
+  - `action_cpp_pkg`: C++ action server and client implemented as ROS 2 components (`rclcpp_components`) with component container launch integration, Gazebo TurtleBot3 launch, and standalone executables.
+  - `action_py_pkg`: Python action server and client with Turtlesim and Gazebo TurtleBot3 launch integration.
 
 ---
 
@@ -367,6 +367,8 @@ colcon build && source install/setup.bash
 ros2 launch action_cpp_pkg turtle_action_component.launch.py launch_client:=true
 # Or standalone processes (C++)
 ros2 launch action_cpp_pkg turtle_action.launch.py launch_client:=true
+# Or 3D Gazebo Sim simulation with TurtleBot3 (C++)
+ros2 launch action_cpp_pkg turtlebot3_action.launch.py launch_client:=true target_x:=2.0 target_y:=2.0
 # Or Python
 ros2 launch action_py_pkg turtle_action.launch.py launch_client:=true
 ```
