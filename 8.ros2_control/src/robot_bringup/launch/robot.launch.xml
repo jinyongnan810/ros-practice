@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+     <!-- Configurable Launch Arguments -->
+     <arg name="model" default="$(find-pkg-share robot_description)/urdf/simple_car.urdf.xacro"
+          description="Path to robot URDF/Xacro description file" />
+     <arg name="controller_config"
+          default="$(find-pkg-share robot_bringup)/config/robot_controllers.yaml"
+          description="Path to ros2_control controller configuration YAML" />
+     <arg name="rvizconfig" default="$(find-pkg-share robot_description)/rviz/display.rviz"
+          description="Path to RViz configuration file" />
+     <arg name="use_rviz" default="true"
+          description="Whether to start RViz2" />
+
+     <!-- 1. Robot State Publisher: Parses Xacro URDF and publishes /robot_description and static
+     /tf -->
+     <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
+          <param name="robot_description" value="$(command 'xacro $(var model)')" type="str" />
+     </node>
+
+     <!-- 2. Controller Manager: Hardware abstraction layer running mock_components and controllers -->
+     <node pkg="controller_manager" exec="ros2_control_node" output="both">
+          <param from="$(var controller_config)" />
+          <param name="robot_description" value="$(command 'xacro $(var model)')" type="str" />
+     </node>
+
+     <!-- 3. Spawner: Activates joint_state_broadcaster (publishes /joint_states) -->
+     <node pkg="controller_manager" exec="spawner" args="joint_state_broadcaster" output="screen" />
+
+     <!-- 4. Spawner: Activates diff_drive_controller (subscribes to /diff_drive_controller/cmd_vel,
+     publishes /odom & /tf) -->
+     <node pkg="controller_manager" exec="spawner" args="diff_drive_controller" output="screen" />
+
+     <!-- 5. RViz2: 3D Visualization of the robot model, TF tree, and odometry -->
+     <node pkg="rviz2" exec="rviz2" args="-d $(var rvizconfig)" if="$(var use_rviz)" output="screen" />
+</launch>

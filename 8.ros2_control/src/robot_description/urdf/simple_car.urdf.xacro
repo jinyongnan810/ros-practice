@@ -31,7 +31,7 @@
         </xacro:inertial_box>
     </link>
 
-    <!-- Drive wheels: cylinders are rotated so their axles align with the Y-axis. -->
+    <!-- Drive wheels - cylinders are rotated so their axles align with the Y-axis. -->
     <xacro:wheel name="front_left" x="${wheel_x_offset}"
         y="${base_width / 2 + wheel_width / 2}" />
     <xacro:wheel name="front_right" x="${wheel_x_offset}"
@@ -106,12 +106,12 @@
         </xacro:inertial_cylinder>
     </link>
 
-    <!-- Camera optical frame (REP-103 convention: +Z forward, +X right, +Y down) -->
+    <!-- Camera optical frame (REP-103 convention - +Z forward, +X right, +Y down) -->
     <link name="camera_optical_frame" />
 
     <!-- ===================== Joints ====================== -->
 
-    <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
+    <!-- Upper assembly - rotate the platform around Z and rigidly attach its box. -->
     <joint name="wheel_joint" type="revolute">
         <parent link="base_link" />
         <child link="top_wheel_link" />
@@ -138,7 +138,7 @@
     <joint name="camera_optical_joint" type="fixed">
         <parent link="camera_link" />
         <child link="camera_optical_frame" />
-        <!-- Optical frame transform: +Z forward along camera lens, +X right, +Y down -->
+        <!-- Optical frame transform - +Z forward along camera lens, +X right, +Y down -->
         <origin xyz="${camera_length} 0 0" rpy="${-pi / 2} 0 ${-pi / 2}" />
     </joint>
 

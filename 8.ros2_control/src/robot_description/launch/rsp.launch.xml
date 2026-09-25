@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Path to robot description URDF/Xacro file -->
+    <arg name="model" default="$(find-pkg-share robot_description)/urdf/simple_car.urdf.xacro"
+        description="Path to robot URDF/Xacro file" />
+
+    <!-- Robot State Publisher: Parses Xacro URDF and publishes /robot_description (latched) and /tf -->
+    <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
+        <param name="robot_description" value="$(command 'xacro $(var model)')" type="str" />
+    </node>
+</launch>

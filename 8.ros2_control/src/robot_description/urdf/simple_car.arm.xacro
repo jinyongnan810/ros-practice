@@ -36,7 +36,7 @@
             <mu2>0.2</mu2>
         </gazebo>
 
-        <!-- Joint 1: Mounted above top box, bends up to 90 degrees (+/- pi/2) around Y-axis -->
+        <!-- Joint 1 - Mounted above top box, bends up to 90 degrees (+/- pi/2) around Y-axis -->
         <joint name="arm_joint_1" type="revolute">
             <parent link="${parent}" />
             <child link="arm_link_1" />

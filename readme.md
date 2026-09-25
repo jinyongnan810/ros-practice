@@ -278,7 +278,8 @@ Real-time robot control framework using `ros2_control` resource management, cont
 
 - **Packages:**
   - `robot_bringup`:
-    - `config/`: `robot_controllers.yaml` with `controller_manager` configuration and `joint_state_broadcaster`.
+    - `config/`: `robot_controllers.yaml` with `controller_manager`, `joint_state_broadcaster`, and `diff_drive_controller`.
+    - `launch/`: `robot.launch.xml` orchestrating `robot_state_publisher`, `ros2_control_node`, controller spawners, and RViz2.
   - `robot_description`:
     - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `simple_car.wheel.xacro`, `simple_car.arm.xacro`, `simple_car.properties.xacro`, `simple_car.materials.xacro`, `simple_car.inertias.xacro`, `simple_car.ros2_control.xacro`).
     - `launch/`: `display.launch.xml` to inspect the model and manipulate joints via `joint_state_publisher_gui` and RViz2.
@@ -407,6 +408,28 @@ ros2 lifecycle set /sensor_station_1 activate && ros2 lifecycle set /sensor_stat
 ros2 launch lifecycle_cpp_pkg lifecycle.launch.py auto_manage:=true
 # Or Python
 ros2 launch lifecycle_py_pkg lifecycle.launch.py auto_manage:=true
+```
+
+#### Running 8.ros2_control (Hardware Abstraction & Controller Spawning)
+```bash
+cd 8.ros2_control
+colcon build --symlink-install && source install/setup.bash
+
+# Option 1: Unified Launch (robot_state_publisher, controller_manager, spawners & RViz2)
+ros2 launch robot_bringup robot.launch.xml
+
+# Option 2: Headless launch (without RViz2)
+ros2 launch robot_bringup robot.launch.xml use_rviz:=false
+
+# In another terminal: inspect hardware interfaces & controllers
+ros2 control list_hardware_interfaces
+ros2 control list_controllers
+
+# Drive the robot interactively using keyboard teleop
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true -p frame_id:=base_link
+
+# Or send a one-off TwistStamped velocity command
+ros2 topic pub /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped '{header: {stamp: {sec: 0, nanosec: 0}, frame_id: "base_link"}, twist: {linear: {x: 0.5, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.5}}}'
 ```
 
 ---
