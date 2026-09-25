@@ -11,6 +11,11 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
 ├── .envrc                          # direnv environment setup (sources install/setup.bash)
 ├── .vscode/                        # VS Code C++ & CMake settings
 └── src/
+    ├── robot_bringup/              # ros2_control configuration & bringup
+    │   ├── CMakeLists.txt          # ament_cmake build rules
+    │   ├── package.xml             # Dependencies (controller_manager, joint_state_broadcaster, etc.)
+    │   └── config/
+    │       └── robot_controllers.yaml # controller_manager parameters & controllers
     └── robot_description/          # Robot kinematic & visual description package
         ├── CMakeLists.txt          # ament_cmake build rules
         ├── package.xml             # Dependencies (xacro, robot_state_publisher, rviz2, etc.)

@@ -60,6 +60,7 @@ ros-practice/
 │       └── lifecycle_py_pkg  # Python sensor station, monitor, lifecycle manager & launch
 ├── 8.ros2_control/         # ros2_control hardware interfaces, controllers & transmissions
 │   └── src/
+│       ├── robot_bringup     # ros2_control controller_manager configuration & launch
 │       └── robot_description # Modular URDF/Xacro robot description, meshes & RViz launch
 └── ros-practice.code-workspace # VS Code multi-root workspace configuration
 ```
@@ -276,8 +277,10 @@ flowchart LR
 Real-time robot control framework using `ros2_control` resource management, controller managers, hardware interfaces, and RViz2 visualization.
 
 - **Packages:**
+  - `robot_bringup`:
+    - `config/`: `robot_controllers.yaml` with `controller_manager` configuration and `joint_state_broadcaster`.
   - `robot_description`:
-    - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `simple_car.wheel.xacro`, `simple_car.arm.xacro`, `simple_car.properties.xacro`, `simple_car.materials.xacro`, `simple_car.inertias.xacro`).
+    - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `simple_car.wheel.xacro`, `simple_car.arm.xacro`, `simple_car.properties.xacro`, `simple_car.materials.xacro`, `simple_car.inertias.xacro`, `simple_car.ros2_control.xacro`).
     - `launch/`: `display.launch.xml` to inspect the model and manipulate joints via `joint_state_publisher_gui` and RViz2.
     - `meshes/`: TurtleBot3 waffle base 3D mesh assets.
     - `rviz/`: Preconfigured RViz visualization profile.

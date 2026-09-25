@@ -1,0 +1,70 @@
+# Controller Manager configuration
+# Real-time resource manager coordinating hardware interfaces and controller lifecycles.
+controller_manager:
+  ros__parameters:
+    # Control loop frequency in Hz. Dictates how frequently hardware is read/written and controllers update.
+    update_rate: 50  # Hz
+
+    # Reference: https://github.com/ros-controls/ros2_controllers
+
+    # Broadcaster that reads joint states from hardware and publishes them to the /joint_states topic.
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # Controller for 2-wheel/4-wheel differential drive robots, consuming cmd_vel and computing odometry.
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+# Parameters for the Differential Drive Controller
+diff_drive_controller:
+  ros__parameters:
+    # List of wheel joint names corresponding to URDF joint definitions
+    left_wheel_names: ["front_left_wheel_joint", "rear_left_wheel_joint"]
+    right_wheel_names: ["front_right_wheel_joint", "rear_right_wheel_joint"]
+
+    # Kinematic parameters (in meters)
+    # wheel_separation: Center-to-center distance between left and right wheels (base_width 0.4 + wheel_width 0.05)
+    wheel_separation: 0.45
+    # wheel_radius: Radius of the wheels, used to convert linear speed to wheel rotation rate
+    wheel_radius: 0.1
+
+    # Calibration multipliers to fine-tune odometry without modifying CAD dimensions
+    wheel_separation_multiplier: 1.0
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
+
+    # Odometry settings
+    # Frequency (Hz) to compute and publish odometry messages (/diff_drive_controller/odom)
+    publish_rate: 50.0
+    # World-fixed odometry coordinate frame (REP-105)
+    odom_frame_id: "odom"
+    # Robot chassis base coordinate frame (REP-105)
+    base_frame_id: "base_link"
+    # Broadcast the transform from odom_frame_id -> base_frame_id on /tf
+    enable_odom_tf: true
+    # Diagonal elements of the 6x6 covariance matrix for estimated pose [x, y, z, roll, pitch, yaw]
+    pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    # Diagonal elements of the 6x6 covariance matrix for estimated velocity [vx, vy, vz, vroll, vpitch, vyaw]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+
+    # Safety: Halt wheels if no new velocity command is received within this duration (seconds)
+    cmd_vel_timeout: 0.5
+
+    # Velocity and acceleration limits for smooth and safe motion
+    linear:
+      x:
+        has_velocity_limits: true
+        max_velocity: 1.0        # m/s
+        min_velocity: -1.0       # m/s
+        has_acceleration_limits: true
+        max_acceleration: 1.0    # m/s^2
+        min_acceleration: -1.0   # m/s^2
+
+    angular:
+      z:
+        has_velocity_limits: true
+        max_velocity: 2.0        # rad/s
+        min_velocity: -2.0       # rad/s
+        has_acceleration_limits: true
+        max_acceleration: 2.0    # rad/s^2
+        min_acceleration: -2.0   # rad/s^2
