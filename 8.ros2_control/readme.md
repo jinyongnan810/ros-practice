@@ -27,7 +27,8 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
             ├── simple_car.materials.xacro  # Color/material definitions
             ├── simple_car.inertias.xacro   # Inertia calculation macros
             ├── simple_car.wheel.xacro      # Wheel link & joint macro
-            └── simple_car.arm.xacro        # 2-DOF robotic arm macro
+            ├── simple_car.arm.xacro        # 2-DOF robotic arm macro
+            └── simple_car.ros2_control.xacro # ros2_control tag with mock_components hardware
 ```
 
 ---

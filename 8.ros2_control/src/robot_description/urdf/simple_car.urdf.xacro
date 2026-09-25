@@ -5,6 +5,7 @@
     <xacro:include filename="simple_car.inertias.xacro" />
     <xacro:include filename="simple_car.wheel.xacro" />
     <xacro:include filename="simple_car.arm.xacro" />
+    <xacro:include filename="simple_car.ros2_control.xacro" />
 
     <!-- ====================== Links ====================== -->
 
