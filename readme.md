@@ -58,6 +58,9 @@ ros-practice/
 │   └── src/
 │       ├── lifecycle_cpp_pkg # C++ sensor station, monitor, lifecycle manager & launch
 │       └── lifecycle_py_pkg  # Python sensor station, monitor, lifecycle manager & launch
+├── 8.ros2_control/         # ros2_control hardware interfaces, controllers & transmissions
+│   └── src/
+│       └── robot_description # Modular URDF/Xacro robot description, meshes & RViz launch
 └── ros-practice.code-workspace # VS Code multi-root workspace configuration
 ```
 
@@ -266,6 +269,18 @@ flowchart LR
   - Strict lifecycle state transitions: `on_configure`, `on_activate`, `on_deactivate`, `on_cleanup`, `on_shutdown`.
   - Lifecycle publishers automatically mute topic publishing when `inactive` or `unconfigured`.
   - Coordinated multi-node simultaneous state transitions via CLI, programmatic service clients, and launch files.
+
+---
+
+### 8. ROS 2 Control (`8.ros2_control/`)
+Real-time robot control framework using `ros2_control` resource management, controller managers, hardware interfaces, and RViz2 visualization.
+
+- **Packages:**
+  - `robot_description`:
+    - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `simple_car.wheel.xacro`, `simple_car.arm.xacro`, `simple_car.properties.xacro`, `simple_car.materials.xacro`, `simple_car.inertias.xacro`).
+    - `launch/`: `display.launch.xml` to inspect the model and manipulate joints via `joint_state_publisher_gui` and RViz2.
+    - `meshes/`: TurtleBot3 waffle base 3D mesh assets.
+    - `rviz/`: Preconfigured RViz visualization profile.
 
 ---
 

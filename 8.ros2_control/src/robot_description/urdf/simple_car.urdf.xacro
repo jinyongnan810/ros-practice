@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<robot name="two_wheel_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="simple_car.materials.xacro" />
+    <xacro:include filename="simple_car.properties.xacro" />
+    <xacro:include filename="simple_car.inertias.xacro" />
+    <xacro:include filename="simple_car.wheel.xacro" />
+    <xacro:include filename="simple_car.arm.xacro" />
+
+    <!-- ====================== Links ====================== -->
+
+    <!-- Chassis visual uses an Apache-2.0 TurtleBot3 Waffle base mesh. -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <mesh filename="package://robot_description/meshes/visual/waffle_base.stl"
+                    scale="${base_mesh_scale_x} ${base_mesh_scale_y} ${base_mesh_scale_z}" />
+            </geometry>
+            <origin xyz="0 0 ${base_mesh_z_offset}" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${base_length} ${base_width} ${base_height}" />
+            </geometry>
+            <origin xyz="0 0 ${base_mesh_z_offset + base_height / 2}" rpy="0 0 0" />
+        </collision>
+        <xacro:inertial_box mass="${base_mass}" x="${base_length}" y="${base_width}"
+            z="${base_height}">
+            <origin xyz="0 0 ${base_mesh_z_offset + base_height / 2}" rpy="0 0 0" />
+        </xacro:inertial_box>
+    </link>
+
+    <!-- Drive wheels: cylinders are rotated so their axles align with the Y-axis. -->
+    <xacro:wheel name="front_left" x="${wheel_x_offset}"
+        y="${base_width / 2 + wheel_width / 2}" />
+    <xacro:wheel name="front_right" x="${wheel_x_offset}"
+        y="${-(base_width / 2 + wheel_width / 2)}" />
+    <xacro:wheel name="rear_left" x="${-wheel_x_offset}"
+        y="${base_width / 2 + wheel_width / 2}" />
+    <xacro:wheel name="rear_right" x="${-wheel_x_offset}"
+        y="${-(base_width / 2 + wheel_width / 2)}" />
+
+    <!-- Upper rotating platform and its mounted box. -->
+    <link name="top_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${top_wheel_radius}" length="${top_wheel_height}" />
+            </geometry>
+            <!-- Raise the cylinder by half its length above the joint frame. -->
+            <origin xyz="0 0 ${top_wheel_height / 2}" rpy="0 0 0" />
+            <material name="gray" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${top_wheel_radius}" length="${top_wheel_height}" />
+            </geometry>
+            <origin xyz="0 0 ${top_wheel_height / 2}" rpy="0 0 0" />
+        </collision>
+        <xacro:inertial_cylinder mass="${top_wheel_mass}" radius="${top_wheel_radius}"
+            length="${top_wheel_height}">
+            <origin xyz="0 0 ${top_wheel_height / 2}" rpy="0 0 0" />
+        </xacro:inertial_cylinder>
+    </link>
+
+    <link name="box_on_top_wheel_link">
+        <visual>
+            <geometry>
+                <box size="${top_box_length} ${top_box_width} ${top_box_height}" />
+            </geometry>
+            <!-- Raise the box by half its height above its link frame. -->
+            <origin xyz="0 0 ${top_box_height / 2}" rpy="0 0 0" />
+            <material name="blue" />
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${top_box_length} ${top_box_width} ${top_box_height}" />
+            </geometry>
+            <origin xyz="0 0 ${top_box_height / 2}" rpy="0 0 0" />
+        </collision>
+        <xacro:inertial_box mass="${top_box_mass}" x="${top_box_length}" y="${top_box_width}"
+            z="${top_box_height}">
+            <origin xyz="0 0 ${top_box_height / 2}" rpy="0 0 0" />
+        </xacro:inertial_box>
+    </link>
+
+    <!-- Camera sensor mounted on the front of the top box -->
+    <link name="camera_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${camera_radius}" length="${camera_length}" />
+            </geometry>
+            <!-- Align cylinder along X (forward) and extend outward from mounting surface -->
+            <origin xyz="${camera_length / 2} 0 0" rpy="0 ${pi / 2} 0" />
+            <material name="black" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${camera_radius}" length="${camera_length}" />
+            </geometry>
+            <origin xyz="${camera_length / 2} 0 0" rpy="0 ${pi / 2} 0" />
+        </collision>
+        <xacro:inertial_cylinder mass="${camera_mass}" radius="${camera_radius}"
+            length="${camera_length}">
+            <origin xyz="${camera_length / 2} 0 0" rpy="0 ${pi / 2} 0" />
+        </xacro:inertial_cylinder>
+    </link>
+
+    <!-- Camera optical frame (REP-103 convention: +Z forward, +X right, +Y down) -->
+    <link name="camera_optical_frame" />
+
+    <!-- ===================== Joints ====================== -->
+
+    <!-- Upper assembly: rotate the platform around Z and rigidly attach its box. -->
+    <joint name="wheel_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="top_wheel_link" />
+        <!-- Place the platform joint on the top surface of the chassis. -->
+        <origin xyz="0 0 ${base_mesh_z_offset + base_height}" rpy="0 0 0" />
+        <axis xyz="0 0 1" />
+        <limit effort="100" velocity="10" lower="${pi / -2}" upper="${pi / 2}" />
+    </joint>
+
+    <joint name="box_on_wheel_joint" type="fixed">
+        <parent link="top_wheel_link" />
+        <child link="box_on_top_wheel_link" />
+        <!-- Place the box on the top surface of the rotating platform. -->
+        <origin xyz="0 0 ${top_wheel_height}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="camera_joint" type="fixed">
+        <parent link="box_on_top_wheel_link" />
+        <child link="camera_link" />
+        <!-- Place the camera joint at the front face center of the top box. -->
+        <origin xyz="${top_box_length / 2} 0 ${top_box_height / 2}" rpy="0 0 0" />
+    </joint>
+
+    <joint name="camera_optical_joint" type="fixed">
+        <parent link="camera_link" />
+        <child link="camera_optical_frame" />
+        <!-- Optical frame transform: +Z forward along camera lens, +X right, +Y down -->
+        <origin xyz="${camera_length} 0 0" rpy="${-pi / 2} 0 ${-pi / 2}" />
+    </joint>
+
+    <!-- 2-part robotic arm mounted above the top box -->
+    <xacro:arm parent="box_on_top_wheel_link" />
+</robot>
