@@ -2,8 +2,17 @@
     "configurations": [
         {
             "name": "Linux",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
-            "compilerPath": "/usr/bin/aarch64-linux-gnu-g++",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/**/include",
+                "${workspaceFolder}/install/**/include",
+                "/opt/ros/jazzy/include",
+                "/opt/ros/jazzy/include/**",
+                "/usr/include",
+                "/usr/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "linux-gcc-arm64"

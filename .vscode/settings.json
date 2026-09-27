@@ -5,23 +5,34 @@
         "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit"
-        },
+        }
     },
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools",
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit"
-        },
+        }
     },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/*/src/**/include",
+        "${workspaceFolder}/*/install/**/include",
+        "/opt/ros/jazzy/include",
+        "/opt/ros/jazzy/include/**",
+        "/usr/include",
+        "/usr/include/**"
+    ],
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "C_Cpp.default.cppStandard": "gnu++17",
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-arm64",
     "isort.args": [
         "--profile",
         "black"
     ],
-    "cmake.sourceDirectory": "/home/kin/shared/shared/ros-practice/1.nodes/src/node_cpp_pkg",
     "python.autoComplete.extraPaths": [
         "/opt/ros/jazzy/lib/python3.12/site-packages"
     ],
     "python.analysis.extraPaths": [
         "/opt/ros/jazzy/lib/python3.12/site-packages"
-    ],
+    ]
 }

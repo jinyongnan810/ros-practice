@@ -24,6 +24,7 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
     │   ├── package.xml             # Dependencies (hardware_interface, dynamixel_sdk, etc.)
     │   ├── include/
     │   │   └── robot_hardware/
+    │   │       ├── base_link_hardware_interface.hpp # Hardware interface header (SystemInterface)
     │   │       └── xl330_driver.hpp # Dynamixel XL-330 motor driver
     │   └── src/
     └── robot_description/          # Robot kinematic & visual description package
