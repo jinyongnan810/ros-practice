@@ -61,6 +61,7 @@ ros-practice/
 ├── 8.ros2_control/         # ros2_control hardware interfaces, controllers & transmissions
 │   └── src/
 │       ├── robot_bringup     # ros2_control controller_manager configuration & launch
+│       ├── robot_hardware    # ros2_control hardware interface & Dynamixel motor driver
 │       └── robot_description # Modular URDF/Xacro robot description, meshes & RViz launch
 └── ros-practice.code-workspace # VS Code multi-root workspace configuration
 ```

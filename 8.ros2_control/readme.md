@@ -19,6 +19,13 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
     │   └── launch/
     │       ├── robot.launch.xml    # Orchestrates robot_state_publisher, controller_manager, spawners & RViz2
     │       └── teleop.launch.xml   # Keyboard teleop configured with TwistStamped for diff_drive_controller
+    ├── robot_hardware/             # ros2_control hardware interface & motor driver package
+    │   ├── CMakeLists.txt          # ament_cmake build rules
+    │   ├── package.xml             # Dependencies (hardware_interface, dynamixel_sdk, etc.)
+    │   ├── include/
+    │   │   └── robot_hardware/
+    │   │       └── xl330_driver.hpp # Dynamixel XL-330 motor driver
+    │   └── src/
     └── robot_description/          # Robot kinematic & visual description package
         ├── CMakeLists.txt          # ament_cmake build rules
         ├── package.xml             # Dependencies (xacro, robot_state_publisher, rviz2, etc.)
@@ -43,7 +50,34 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
 
 ## 🚀 Quickstart & Execution Guide
 
-### 1. Build the Workspace
+### 1. Install Dynamixel SDK & Hardware Dependencies
+
+The `robot_hardware` package communicates with Dynamixel XL-330 smart actuators via the official ROBOTIS **Dynamixel SDK** (`dynamixel_sdk`).
+
+Install the pre-built ROS 2 binary package for your ROS distribution (e.g. ROS 2 Jazzy):
+
+```bash
+sudo apt update
+sudo apt install -y ros-jazzy-dynamixel-sdk
+```
+
+> [!NOTE]
+> If you are using a different ROS 2 distribution (such as Humble or Iron), use the dynamic environment variable:
+> ```bash
+> sudo apt install -y ros-${ROS_DISTRO}-dynamixel-sdk
+> ```
+
+> [!TIP]
+> **Serial Port Permissions (`/dev/ttyUSB*` / `/dev/ttyACM*`)**:
+> To access USB-to-Dynamixel serial adapters (such as ROBOTIS U2D2 or OpenRB-150) without root privileges, add your user to the `dialout` group:
+> ```bash
+> sudo usermod -aG dialout $USER
+> ```
+> *Note: Log out and log back in (or restart your terminal session) for the new group membership to take effect.*
+
+---
+
+### 2. Build the Workspace
 
 From inside the `8.ros2_control` directory:
 
@@ -58,7 +92,7 @@ source install/setup.bash
 
 ---
 
-### 2. Method A: Unified Launch via `robot.launch.xml` (Recommended)
+### 3. Method A: Unified Launch via `robot.launch.xml` (Recommended)
 
 Launch the complete `ros2_control` stack including `robot_state_publisher`, `ros2_control_node`, controller spawners, and RViz2:
 
@@ -74,7 +108,7 @@ ros2 launch robot_bringup robot.launch.xml use_rviz:=false
 
 ---
 
-### 3. Method B: Step-by-Step Manual CLI Commands
+### 4. Method B: Step-by-Step Manual CLI Commands
 
 To understand how each node interacts within the `ros2_control` architecture, you can run them manually across separate terminals:
 
@@ -128,7 +162,7 @@ rviz2 -d $(ros2 pkg prefix --share robot_description)/rviz/display.rviz
 
 ---
 
-### 4. Keyboard Teleoperation (`teleop_twist_keyboard`)
+### 5. Keyboard Teleoperation (`teleop_twist_keyboard`)
 
 Drive the robot interactively using the keyboard. In ROS 2 Jazzy, `diff_drive_controller` expects `geometry_msgs/msg/TwistStamped`, so `stamped:=true` and `frame_id:=base_link` must be set.
 
@@ -170,7 +204,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args \
 
 ---
 
-### 5. Kinematics-Only GUI Preview (without `ros2_control`)
+### 6. Kinematics-Only GUI Preview (without `ros2_control`)
 
 To preview the URDF and test joint movements with graphical sliders without starting `ros2_control`:
 
