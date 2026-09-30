@@ -2,8 +2,11 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <ros2_control name="simple_car" type="system">
         <hardware>
+            <!-- run the mock hardware interface -->
             <plugin>mock_components/GenericSystem</plugin>
             <param name="calculate_dynamics">true</param>
+            <!-- use the hardware interface plugin -->
+            <!-- <plugin>robot_hardware/BaseLinkHardwareInterface</plugin> -->
         </hardware>
 
         <!-- Drive Wheels -->
