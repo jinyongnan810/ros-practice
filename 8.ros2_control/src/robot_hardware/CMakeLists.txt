@@ -20,10 +20,51 @@ include_directories(
   include/robot_hardware
 )
 
+# Shared library for hardware interface plugin
+add_library(${PROJECT_NAME} SHARED
+  src/base_link_hardware_interface.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+ament_target_dependencies(${PROJECT_NAME}
+  hardware_interface
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+  dynamixel_sdk
+)
+
+# Export plugin description file
+pluginlib_export_plugin_description_file(hardware_interface robot_hardware.xml)
+
+# Install targets
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
 # Install headers
 install(
   DIRECTORY include/
   DESTINATION include
+)
+
+# Export dependencies and targets
+ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(export_${PROJECT_NAME})
+ament_export_dependencies(
+  hardware_interface
+  pluginlib
+  rclcpp
+  rclcpp_lifecycle
+  dynamixel_sdk
 )
 
 if(BUILD_TESTING)

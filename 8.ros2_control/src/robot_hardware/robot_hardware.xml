@@ -1,0 +1,9 @@
+<library path="robot_hardware">
+  <class name="robot_hardware/BaseLinkHardwareInterface"
+    type="robot_hardware::BaseLinkHardwareInterface"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control SystemInterface for 4-wheel mobile base using Dynamixel XL-330 smart actuators.
+    </description>
+  </class>
+</library>

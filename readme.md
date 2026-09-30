@@ -281,6 +281,9 @@ Real-time robot control framework using `ros2_control` resource management, cont
   - `robot_bringup`:
     - `config/`: `robot_controllers.yaml` with `controller_manager`, `joint_state_broadcaster`, and `diff_drive_controller`.
     - `launch/`: `robot.launch.xml` orchestrating `robot_state_publisher`, `ros2_control_node`, controller spawners, and RViz2.
+  - `robot_hardware`:
+    - `include/robot_hardware/`: `base_link_hardware_interface.hpp` (`SystemInterface`), `xl330_driver.hpp` (Dynamixel XL-330 driver).
+    - `src/`: `base_link_hardware_interface.cpp` supporting direct physical encoder readings (`getPositionRadian`) and simulation-mode numerical integration (`pos += vel * dt`).
   - `robot_description`:
     - `urdf/`: Modular Xacro descriptions (`simple_car.urdf.xacro`, `simple_car.wheel.xacro`, `simple_car.arm.xacro`, `simple_car.properties.xacro`, `simple_car.materials.xacro`, `simple_car.inertias.xacro`, `simple_car.ros2_control.xacro`).
     - `launch/`: `display.launch.xml` to inspect the model and manipulate joints via `joint_state_publisher_gui` and RViz2.
