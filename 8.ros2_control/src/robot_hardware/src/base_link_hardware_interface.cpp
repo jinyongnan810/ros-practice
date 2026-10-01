@@ -252,6 +252,8 @@ namespace robot_hardware
       const std::string vel_name = joint.name + "/" + hardware_interface::HW_IF_VELOCITY;
 
       const double prev_position = get_state(pos_name);
+      // make the velocity minus if left and right wheels are rotating in same direction
+      // also make the velocity to be 0 if less than a certain threshold for real hardware
       const double command_velocity = get_command(vel_name);
 
       const double new_position = prev_position + command_velocity * period.seconds();
@@ -280,6 +282,7 @@ namespace robot_hardware
     {
       const double command_velocity =
           get_command(info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY);
+      // make the velocity minus if left and right wheels are rotating in same direction
       driver_->setTargetVelocityRadianPerSec(motor_ids[i], command_velocity);
     }
     // }
