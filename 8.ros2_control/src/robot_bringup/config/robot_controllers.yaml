@@ -3,7 +3,7 @@
 controller_manager:
   ros__parameters:
     # Control loop frequency in Hz. Dictates how frequently hardware is read/written and controllers update.
-    update_rate: 50  # Hz
+    update_rate: 50 # Hz
 
     # Reference: https://github.com/ros-controls/ros2_controllers
 
@@ -14,6 +14,14 @@ controller_manager:
     # Controller for 2-wheel/4-wheel differential drive robots, consuming cmd_vel and computing odometry.
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
+
+    # Position controller for the rotating platform joint
+    wheel_joint_controller:
+      type: position_controllers/JointGroupPositionController
+
+    # Position controller for the 2-DOF robotic arm joints
+    arm_controller:
+      type: position_controllers/JointGroupPositionController
 
 # Parameters for the Differential Drive Controller
 diff_drive_controller:
@@ -54,17 +62,35 @@ diff_drive_controller:
     linear:
       x:
         has_velocity_limits: true
-        max_velocity: 1.0        # m/s
-        min_velocity: -1.0       # m/s
+        max_velocity: 1.0 # m/s
+        min_velocity: -1.0 # m/s
         has_acceleration_limits: true
-        max_acceleration: 1.0    # m/s^2
-        min_acceleration: -1.0   # m/s^2
+        max_acceleration: 1.0 # m/s^2
+        min_acceleration: -1.0 # m/s^2
 
     angular:
       z:
         has_velocity_limits: true
-        max_velocity: 2.0        # rad/s
-        min_velocity: -2.0       # rad/s
+        max_velocity: 2.0 # rad/s
+        min_velocity: -2.0 # rad/s
         has_acceleration_limits: true
-        max_acceleration: 2.0    # rad/s^2
-        min_acceleration: -2.0   # rad/s^2
+        max_acceleration: 2.0 # rad/s^2
+        min_acceleration: -2.0 # rad/s^2
+
+# Note: Unlike diff_drive_controller (which computes kinematics, odometry, and limits),
+# JointGroupPositionController is a lightweight forward command controller that simply
+# passes target setpoints from topic to hardware interface; only "joints" is required.
+# (Use joint_trajectory_controller/JointTrajectoryController if splines/limits/PID are needed.)
+
+# Parameters for Rotating Platform Joint Position Controller
+wheel_joint_controller:
+  ros__parameters:
+    joints:
+      - wheel_joint
+
+# Parameters for Robotic Arm Joints Position Controller
+arm_controller:
+  ros__parameters:
+    joints:
+      - arm_joint_1
+      - arm_joint_2

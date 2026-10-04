@@ -30,6 +30,12 @@
      publishes /odom & /tf) -->
      <node pkg="controller_manager" exec="spawner" args="diff_drive_controller" output="screen" />
 
-     <!-- 5. RViz2: 3D Visualization of the robot model, TF tree, and odometry -->
+     <!-- 5. Spawner: Activates wheel_joint_controller for rotating platform -->
+     <node pkg="controller_manager" exec="spawner" args="wheel_joint_controller" output="screen" />
+
+     <!-- 6. Spawner: Activates arm_controller for 2-DOF robotic arm -->
+     <node pkg="controller_manager" exec="spawner" args="arm_controller" output="screen" />
+
+     <!-- 7. RViz2: 3D Visualization of the robot model, TF tree, and odometry -->
      <node pkg="rviz2" exec="rviz2" args="-d $(var rvizconfig)" if="$(var use_rviz)" output="screen" />
 </launch>

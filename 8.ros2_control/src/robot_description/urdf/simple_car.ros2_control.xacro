@@ -7,11 +7,11 @@
             <param name="calculate_dynamics">true</param>
             <!-- use the hardware interface plugin -->
             <!-- <plugin>robot_hardware/BaseLinkHardwareInterface</plugin> -->
-            <param name="port_name">/dev/ttyUSB0</param>
+            <!-- <param name="port_name">/dev/ttyUSB0</param>
             <param name="front_left_wheel_id">10</param>
             <param name="front_right_wheel_id">11</param>
             <param name="rear_left_wheel_id">12</param>
-            <param name="rear_right_wheel_id">13</param>
+            <param name="rear_right_wheel_id">13</param> -->
         </hardware>
 
         <!-- Drive Wheels -->

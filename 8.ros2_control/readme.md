@@ -99,13 +99,13 @@ source install/setup.bash
 
 The custom `BaseLinkHardwareInterface` controls the 4-wheel differential drive chassis and supports two reading strategies:
 
-| Feature / Criteria | **Direct Reading (`getPositionRadian`)** | **Integration (`get_state + vel * dt`)** |
-| :--- | :--- | :--- |
-| **Primary Use Case** | **Physical Robot Hardware** | **Software Testing / Simulation / Demos** |
-| **Physics Awareness** | ✅ Detects wheel slips, stalls, motor inertia, terrain bumps, external pushes | ❌ Assumes ideal motor response; reports movement even if the wheel is stalled |
-| **Error Accumulation** | ✅ Zero numerical integration drift (reads actual encoder counter) | ⚠️ Accumulates numerical errors ($O(\Delta t)$) over time |
-| **Hardware Dependency** | ❌ Requires physical motors connected over serial/USB (`/dev/ttyUSB0`) | ✅ Can run anywhere (laptops, CI pipelines, headless VMs) |
-| **Odometry Accuracy** | ✅ Realistic odometry for SLAM / Navigation ($\Delta \theta = \theta_t - \theta_{t-1}$) | ⚠️ Ideal kinematic odometry (pure dead reckoning) |
+| Feature / Criteria      | **Direct Reading (`getPositionRadian`)**                                               | **Integration (`get_state + vel * dt`)**                                      |
+| :---------------------- | :------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| **Primary Use Case**    | **Physical Robot Hardware**                                                            | **Software Testing / Simulation / Demos**                                     |
+| **Physics Awareness**   | ✅ Detects wheel slips, stalls, motor inertia, terrain bumps, external pushes           | ❌ Assumes ideal motor response; reports movement even if the wheel is stalled |
+| **Error Accumulation**  | ✅ Zero numerical integration drift (reads actual encoder counter)                      | ⚠️ Accumulates numerical errors ($O(\Delta t)$) over time                      |
+| **Hardware Dependency** | ❌ Requires physical motors connected over serial/USB (`/dev/ttyUSB0`)                  | ✅ Can run anywhere (laptops, CI pipelines, headless VMs)                      |
+| **Odometry Accuracy**   | ✅ Realistic odometry for SLAM / Navigation ($\Delta \theta = \theta_t - \theta_{t-1}$) | ⚠️ Ideal kinematic odometry (pure dead reckoning)                              |
 
 #### Automatic Fallback
 - **No Hardware Connected**: If `/dev/ttyUSB0` cannot be opened at `on_configure`, the interface automatically logs a warning and proceeds in **simulation mode** (`pos += vel * dt`). This allows testing controllers, RViz2, and keyboard teleop without physical hardware.
@@ -157,6 +157,12 @@ ros2 run controller_manager spawner joint_state_broadcaster
 
 # 2. Activate differential drive controller (listens to cmd_vel, computes odometry)
 ros2 run controller_manager spawner diff_drive_controller
+
+# 3. Activate rotating platform position controller
+ros2 run controller_manager spawner wheel_joint_controller
+
+# 4. Activate robotic arm position controller
+ros2 run controller_manager spawner arm_controller
 ```
 
 #### Terminal 4: Inspect & Drive the Robot
@@ -165,7 +171,7 @@ ros2 run controller_manager spawner diff_drive_controller
 # Verify active hardware interfaces (command and state interfaces)
 ros2 control list_hardware_interfaces
 
-# Verify controller states (both should show: active [active])
+# Verify controller states (all should show: active [active])
 ros2 control list_controllers
 
 # Send a one-time velocity command (add `--once` to the command to publish once; after 0.5s cmd_vel_timeout the robot brakes)
@@ -173,6 +179,12 @@ ros2 topic pub /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped '{
   header: {stamp: {sec: 0, nanosec: 0}, frame_id: "base_link"},
   twist: {linear: {x: 0.5, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.5}}
 }'
+
+# Command rotating platform position (rad)
+ros2 topic pub --once /wheel_joint_controller/commands std_msgs/msg/Float64MultiArray '{data: [1.57]}'
+
+# Command robotic arm joints positions [arm_joint_1, arm_joint_2] (rad)
+ros2 topic pub --once /arm_controller/commands std_msgs/msg/Float64MultiArray '{data: [0.5, -0.5]}'
 
 # Echo odometry updates published by diff_drive_controller
 ros2 topic echo /diff_drive_controller/odom
