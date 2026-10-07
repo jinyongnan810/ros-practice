@@ -13,11 +13,13 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
 └── src/
     ├── robot_bringup/              # ros2_control configuration & bringup
     │   ├── CMakeLists.txt          # ament_cmake build rules
-    │   ├── package.xml             # Dependencies (controller_manager, diff_drive_controller, etc.)
+    │   ├── package.xml             # Dependencies (controller_manager, rclpy, python3-tk, diff_drive_controller, etc.)
     │   ├── config/
     │   │   └── robot_controllers.yaml # controller_manager parameters & controllers
+    │   ├── scripts/
+    │   │   └── position_command_gui.py # Sliders commanding platform and arm through ros2_control
     │   └── launch/
-    │       ├── robot.launch.xml    # Orchestrates robot_state_publisher, controller_manager, spawners & RViz2
+    │       ├── robot.launch.xml    # Orchestrates state publishers, controller_manager, spawners & RViz2
     │       └── teleop.launch.xml   # Keyboard teleop configured with TwistStamped for diff_drive_controller
     ├── robot_hardware/             # ros2_control hardware interface & motor driver package
     │   ├── CMakeLists.txt          # ament_cmake build rules (compiles robot_hardware plugin library)
@@ -121,6 +123,16 @@ Launch the complete `ros2_control` stack including `robot_state_publisher`, `ros
 ros2 launch robot_bringup robot.launch.xml
 ```
 
+To control the arm and rotating platform with sliders, enable the position command GUI:
+
+```bash
+ros2 launch robot_bringup robot.launch.xml use_position_command_gui:=true
+```
+
+The GUI publishes `std_msgs/msg/Float64MultiArray` position targets in radians to `/arm_controller/commands` (ordered as `arm_joint_1`, `arm_joint_2`) and `/wheel_joint_controller/commands` (`wheel_joint`). It subscribes to `/joint_states` for actual positions and never publishes synthetic joint states. Slider ranges come from the selected URDF's joint limits. Sliders wait for fresh feedback and a command subscriber, initialize from measured positions without sending commands, and send targets when moved. Targets are direct position setpoints, without trajectory interpolation.
+
+The current `mock_components/GenericSystem` setup moves the mock joints. With a hardware plugin supporting these position interfaces, the same commands move physical actuators. The custom `BaseLinkHardwareInterface` currently supports only drive-wheel velocity interfaces; it needs arm/platform position support before use with physical actuators.
+
 To run headless (without launching RViz2):
 
 ```bash
@@ -131,7 +143,7 @@ ros2 launch robot_bringup robot.launch.xml use_rviz:=false
 
 ### 5. Method B: Step-by-Step Manual CLI Commands
 
-To understand how each node interacts within the `ros2_control` architecture, you can run them manually across separate terminals:
+To understand how each node interacts within the `ros2_control` architecture, you can run them manually across separate terminals. This procedure uses `joint_state_broadcaster` for controller feedback, matching the unified launch's default behavior:
 
 #### Terminal 1: Start `robot_state_publisher`
 Parses the Xacro robot description and publishes `/robot_description` and TF transforms (launch file safely passes the multi-line XML string as a typed parameter):

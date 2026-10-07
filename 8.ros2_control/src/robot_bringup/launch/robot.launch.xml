@@ -10,10 +10,18 @@
           description="Path to RViz configuration file" />
      <arg name="use_rviz" default="true"
           description="Whether to start RViz2" />
+     <arg name="use_position_command_gui" default="false"
+          description="Start sliders that command the ros2_control platform and arm controllers" />
 
      <!-- 1. Robot State Publisher: Parses Xacro URDF and publishes /robot_description and static
      /tf -->
      <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
+          <param name="robot_description" value="$(command 'xacro $(var model)')" type="str" />
+     </node>
+
+     <!-- Optional GUI sends position targets to controllers; feedback remains on /joint_states. -->
+     <node pkg="robot_bringup" exec="position_command_gui.py"
+          if="$(var use_position_command_gui)" output="screen">
           <param name="robot_description" value="$(command 'xacro $(var model)')" type="str" />
      </node>
 

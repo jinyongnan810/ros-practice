@@ -15,4 +15,9 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/position_command_gui.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()
