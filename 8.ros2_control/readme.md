@@ -115,6 +115,18 @@ The custom `BaseLinkHardwareInterface` controls the 4-wheel differential drive c
 
 ---
 
+### Separate Platform and Arm Hardware Interfaces
+
+The Xacro defines three independent hardware components: `simple_car` (four drive wheels), `rotating_platform` (`wheel_joint`), and `robotic_arm` (`arm_joint_1`, `arm_joint_2`). Each defaults to `mock_components/GenericSystem`, so the existing controllers and GUI work unchanged.
+
+To use a position component with physical actuators, replace its mock plugin and `calculate_dynamics` parameter with the commented `robot_hardware/WheelJointHardwareInterface` or `robot_hardware/ArmJointsHardwareInterface` plugin and its serial parameters. Each plugin accepts `port_name` and `baud_rate` (default 57600), position commands, and position/velocity states. Configure motor IDs using each joint's `dxl_id` parameter; the Xacro examples use 14 for the platform and 15–16 for the arm. Without these parameters, plugin defaults are 5 and 6–7 respectively.
+
+Each component owns a serial connection. Use separate adapters/ports for the base, platform, and arm; the commented examples use `/dev/ttyUSB0`, `/dev/ttyUSB1`, and `/dev/ttyUSB2`. These independent plugins do not coordinate access to a shared serial bus.
+
+The new position plugins read encoder feedback and write position targets when connected. Activation holds the measured position before enabling torque; deactivation disables torque. If the connection cannot be initialized, they fall back to mock position feedback with velocity computed over the control period. The current XL330 driver does not propagate per-motor communication errors, so opening a port alone does not confirm actuator communication.
+
+---
+
 ### 4. Method A: Unified Launch via `robot.launch.xml` (Recommended)
 
 Launch the complete `ros2_control` stack including `robot_state_publisher`, `ros2_control_node`, controller spawners, and RViz2:
@@ -131,7 +143,7 @@ ros2 launch robot_bringup robot.launch.xml use_position_command_gui:=true
 
 The GUI publishes `std_msgs/msg/Float64MultiArray` position targets in radians to `/arm_controller/commands` (ordered as `arm_joint_1`, `arm_joint_2`) and `/wheel_joint_controller/commands` (`wheel_joint`). It subscribes to `/joint_states` for actual positions and never publishes synthetic joint states. Slider ranges come from the selected URDF's joint limits. Sliders wait for fresh feedback and a command subscriber, initialize from measured positions without sending commands, and send targets when moved. Targets are direct position setpoints, without trajectory interpolation.
 
-The current `mock_components/GenericSystem` setup moves the mock joints. With a hardware plugin supporting these position interfaces, the same commands move physical actuators. The custom `BaseLinkHardwareInterface` currently supports only drive-wheel velocity interfaces; it needs arm/platform position support before use with physical actuators.
+The current `mock_components/GenericSystem` setup moves the mock joints. With a hardware plugin supporting these position interfaces, the same commands move physical actuators. The drive wheels use `BaseLinkHardwareInterface`; separate `WheelJointHardwareInterface` and `ArmJointsHardwareInterface` plugins provide the platform and arm position interfaces.
 
 To run headless (without launching RViz2):
 

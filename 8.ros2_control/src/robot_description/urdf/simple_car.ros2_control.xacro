@@ -36,20 +36,49 @@
             <state_interface name="velocity" />
         </joint>
 
+    </ros2_control>
+
+    <ros2_control name="rotating_platform" type="system">
+        <hardware>
+            <plugin>mock_components/GenericSystem</plugin>
+            <param name="calculate_dynamics">true</param>
+            <!-- Replace the mock plugin and parameter above for physical hardware.
+            <plugin>robot_hardware/WheelJointHardwareInterface</plugin>
+            <param name="port_name">/dev/ttyUSB1</param>
+            <param name="baud_rate">57600</param>
+            -->
+        </hardware>
+
         <!-- Rotating Platform Joint -->
         <joint name="wheel_joint">
+            <param name="dxl_id">14</param>
             <command_interface name="position" />
             <state_interface name="position" />
             <state_interface name="velocity" />
         </joint>
 
+    </ros2_control>
+
+    <ros2_control name="robotic_arm" type="system">
+        <hardware>
+            <plugin>mock_components/GenericSystem</plugin>
+            <param name="calculate_dynamics">true</param>
+            <!-- Replace the mock plugin and parameter above for physical hardware.
+            <plugin>robot_hardware/ArmJointsHardwareInterface</plugin>
+            <param name="port_name">/dev/ttyUSB2</param>
+            <param name="baud_rate">57600</param>
+            -->
+        </hardware>
+
         <!-- Robotic Arm Joints -->
         <joint name="arm_joint_1">
+            <param name="dxl_id">15</param>
             <command_interface name="position" />
             <state_interface name="position" />
             <state_interface name="velocity" />
         </joint>
         <joint name="arm_joint_2">
+            <param name="dxl_id">16</param>
             <command_interface name="position" />
             <state_interface name="position" />
             <state_interface name="velocity" />

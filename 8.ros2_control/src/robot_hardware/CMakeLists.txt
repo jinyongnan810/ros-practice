@@ -23,6 +23,9 @@ include_directories(
 # Shared library for hardware interface plugin
 add_library(${PROJECT_NAME} SHARED
   src/base_link_hardware_interface.cpp
+  src/position_hardware_interface.cpp
+  src/wheel_joint_hardware_interface.cpp
+  src/arm_joints_hardware_interface.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

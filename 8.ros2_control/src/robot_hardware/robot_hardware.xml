@@ -6,4 +6,14 @@
       ros2_control SystemInterface for 4-wheel mobile base using Dynamixel XL-330 smart actuators.
     </description>
   </class>
+  <class name="robot_hardware/WheelJointHardwareInterface"
+    type="robot_hardware::WheelJointHardwareInterface"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>Position hardware interface for the rotating platform wheel_joint.</description>
+  </class>
+  <class name="robot_hardware/ArmJointsHardwareInterface"
+    type="robot_hardware::ArmJointsHardwareInterface"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>Position hardware interface for arm_joint_1 and arm_joint_2.</description>
+  </class>
 </library>

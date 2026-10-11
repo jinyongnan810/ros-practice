@@ -26,10 +26,17 @@
 class XL330Driver
 {
 public:
-    XL330Driver(std::string device_name)
+    XL330Driver(std::string device_name, int baud_rate = BAUDRATE)
+        : baud_rate_(baud_rate)
     {
         portHandler_ = dynamixel::PortHandler::getPortHandler(device_name.c_str());
         packetHandler_ = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+    }
+
+    ~XL330Driver()
+    {
+        portHandler_->closePort();
+        delete portHandler_;
     }
 
     int init()
@@ -48,7 +55,7 @@ public:
         }
 
         // Set port baudrate
-        if (portHandler_->setBaudRate(BAUDRATE))
+        if (portHandler_->setBaudRate(baud_rate_))
         {
             std::cout << "Succeeded to change the baudrate!" << std::endl;
         }
@@ -68,6 +75,14 @@ public:
         packetHandler_->write1ByteTxRx(portHandler_, dxl_id, ADDR_OPERATING_MODE, OPERATING_MODE_POSITION);
 
         // Enable Torque
+        packetHandler_->write1ByteTxRx(portHandler_, dxl_id, ADDR_TORQUE_ENABLE, 1);
+    }
+
+    // Position components set a measured hold target before enabling torque.
+    void activateWithPositionMode(int dxl_id, double initial_position)
+    {
+        packetHandler_->write1ByteTxRx(portHandler_, dxl_id, ADDR_OPERATING_MODE, OPERATING_MODE_POSITION);
+        setTargetPositionRadian(dxl_id, initial_position);
         packetHandler_->write1ByteTxRx(portHandler_, dxl_id, ADDR_TORQUE_ENABLE, 1);
     }
 
@@ -118,6 +133,7 @@ public:
     }
 
 private:
+    int baud_rate_;
     dynamixel::PortHandler *portHandler_;
     dynamixel::PacketHandler *packetHandler_;
 };
