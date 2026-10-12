@@ -41,14 +41,16 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
         │       └── waffle_base.stl
         ├── rviz/
         │   └── display.rviz        # Pre-configured RViz display profile
-        └── urdf/                   # Modular Xacro kinematic model (Gazebo-free)
+        ├── worlds/                 # Local ground plane and forest from 5.urdf
+        └── urdf/                   # Modular Xacro with optional Gazebo support
             ├── simple_car.urdf.xacro       # Top-level entry point
             ├── simple_car.properties.xacro # Dimensions, offsets & masses
             ├── simple_car.materials.xacro  # Color/material definitions
             ├── simple_car.inertias.xacro   # Inertia calculation macros
             ├── simple_car.wheel.xacro      # Wheel link & joint macro
             ├── simple_car.arm.xacro        # 2-DOF robotic arm macro
-            └── simple_car.ros2_control.xacro # ros2_control tag with mock_components hardware
+            ├── simple_car.gazebo.xacro # Camera and gz_ros2_control system plugin
+            └── simple_car.ros2_control.xacro # Separate components with mock/Gazebo backends
 ```
 
 ---
@@ -150,6 +152,68 @@ To run headless (without launching RViz2):
 ```bash
 ros2 launch robot_bringup robot.launch.xml use_rviz:=false
 ```
+
+---
+
+### Gazebo Sim with ros2_control (ROS 2 Jazzy / Harmonic)
+
+> [!TIP]
+> **When to use Gazebo Sim with ros2_control**
+>
+> Use Gazebo to test the same controller setup against a simulated robot with physics before connecting real hardware. For this robot, it lets you test driving and odometry with `diff_drive_controller`, platform and arm movement with the position controllers and GUI, gravity, collisions, friction, and navigation using simulated camera data.
+>
+> | Workflow | Best use |
+> | :--- | :--- |
+> | Mock hardware + RViz | Quickly check controller configuration, topics, and joint motion without physics. |
+> | Gazebo + ros2_control | Test those controllers with simulated physics and sensors. |
+> | Physical hardware interfaces | Operate and test the actual motors. |
+>
+> Gazebo selects `GazeboSimSystem` as the hardware backend while keeping the same controller commands. Its plugin creates the controller manager inside the simulator. Simulation helps catch problems early; real hardware still needs testing for motor response, communication, and calibration.
+
+Install the simulation packages (the `gz_ros2_control` packages you already installed supply `GazeboSimSystem`):
+
+```bash
+sudo apt install ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-bridge ros-jazzy-gz-ros2-control
+```
+
+Build and launch from `8.ros2_control`:
+
+```bash
+colcon build --symlink-install
+source install/setup.bash
+ros2 launch robot_bringup gazebo.launch.xml use_position_command_gui:=true
+```
+
+Add `use_rviz:=true` for RViz. The default world is a local ground plane derived from `5.urdf`, requiring no Fuel downloads. To use the original forest world:
+
+```bash
+ros2 launch robot_bringup gazebo.launch.xml \
+  world:="$(ros2 pkg prefix --share robot_description)/worlds/forest.sdf"
+```
+
+The forest may download its tree models on first launch. The camera attachment, wheel friction, arm dynamics, and world setup are reused from `5.urdf`.
+
+The launch passes `use_gazebo:=true` and the controller YAML path to Xacro. All three hardware components select `gz_ros2_control/GazeboSimSystem`; the Gazebo system plugin creates the controller manager inside the simulator. The spawner waits for that manager and activates the joint state broadcaster, differential drive controller, platform controller, and arm controller. Use this launch by itself; `robot.launch.xml` starts a separate manager for the mock/physical workflow.
+
+The clock and camera topics are bridged from Gazebo. Joint states, odometry, TF, and commands come directly from ros2_control, so this model omits the standalone Gazebo drive, position-control, and joint-state plugins used in `5.urdf`. Existing controller commands and the position GUI apply to the simulated robot:
+
+```bash
+ros2 control list_hardware_interfaces
+ros2 control list_controllers
+ros2 topic pub --once /wheel_joint_controller/commands std_msgs/msg/Float64MultiArray '{data: [0.5]}'
+ros2 topic pub --once /arm_controller/commands std_msgs/msg/Float64MultiArray '{data: [0.5, -0.5]}'
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args \
+  -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true -p frame_id:=base_link -p use_sim_time:=true
+```
+
+For direct Xacro conversion, supply both arguments:
+
+```bash
+xacro src/robot_description/urdf/simple_car.urdf.xacro use_gazebo:=true \
+  controller_config:="$(ros2 pkg prefix --share robot_bringup)/config/robot_controllers.yaml"
+```
+
+Without `use_gazebo:=true`, the existing mock components remain selected. See the [official Jazzy gz_ros2_control documentation](https://control.ros.org/jazzy/doc/gz_ros2_control/doc/index.html) for the simulation plugin configuration.
 
 ---
 

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Camera sensor attachment on camera_link -->
+    <gazebo reference="camera_link">
+        <sensor name="camera" type="camera">
+            <!-- Keep sensor actively generating frames in background -->
+            <always_on>true</always_on>
+            <!-- Show viewing frustum in Gazebo GUI -->
+            <visualize>true</visualize>
+            <!-- Frame rate in Hz -->
+            <update_rate>30</update_rate>
+            <topic>/camera/image_raw</topic>
+            <gz_frame_id>camera_optical_frame</gz_frame_id>
+            <camera name="camera_sensor">
+                <camera_info_topic>/camera/camera_info</camera_info_topic>
+                <!-- Horizontal FOV (~62.4 deg) -->
+                <horizontal_fov>1.089</horizontal_fov>
+                <image>
+                    <width>640</width>
+                    <height>480</height>
+                    <format>R8G8B8</format>
+                </image>
+                <!-- Near and far clipping planes in meters -->
+                <clip>
+                    <near>0.05</near>
+                    <far>8.0</far>
+                </clip>
+            </camera>
+        </sensor>
+    </gazebo>
+
+    <gazebo>
+        <!-- Gazebo owns the controller manager and loads all three hardware components. -->
+        <plugin filename="libgz_ros2_control-system.so"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(arg controller_config)</parameters>
+        </plugin>
+    </gazebo>
+</robot>

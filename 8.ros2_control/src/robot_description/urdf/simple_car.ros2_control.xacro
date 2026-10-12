@@ -2,16 +2,21 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <ros2_control name="simple_car" type="system">
         <hardware>
-            <!-- run the mock hardware interface -->
-            <plugin>mock_components/GenericSystem</plugin>
-            <param name="calculate_dynamics">true</param>
-            <!-- use the hardware interface plugin -->
-            <!-- <plugin>robot_hardware/BaseLinkHardwareInterface</plugin> -->
-            <!-- <param name="port_name">/dev/ttyUSB0</param>
-            <param name="front_left_wheel_id">10</param>
-            <param name="front_right_wheel_id">11</param>
-            <param name="rear_left_wheel_id">12</param>
-            <param name="rear_right_wheel_id">13</param> -->
+            <xacro:if value="$(arg use_gazebo)">
+                <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            </xacro:if>
+            <xacro:unless value="$(arg use_gazebo)">
+                <!-- run the mock hardware interface -->
+                <plugin>mock_components/GenericSystem</plugin>
+                <param name="calculate_dynamics">true</param>
+                <!-- use the hardware interface plugin -->
+                <!-- <plugin>robot_hardware/BaseLinkHardwareInterface</plugin> -->
+                <!-- <param name="port_name">/dev/ttyUSB0</param>
+                <param name="front_left_wheel_id">10</param>
+                <param name="front_right_wheel_id">11</param>
+                <param name="rear_left_wheel_id">12</param>
+                <param name="rear_right_wheel_id">13</param> -->
+            </xacro:unless>
         </hardware>
 
         <!-- Drive Wheels -->
@@ -40,13 +45,18 @@
 
     <ros2_control name="rotating_platform" type="system">
         <hardware>
-            <plugin>mock_components/GenericSystem</plugin>
-            <param name="calculate_dynamics">true</param>
-            <!-- Replace the mock plugin and parameter above for physical hardware.
-            <plugin>robot_hardware/WheelJointHardwareInterface</plugin>
-            <param name="port_name">/dev/ttyUSB1</param>
-            <param name="baud_rate">57600</param>
-            -->
+            <xacro:if value="$(arg use_gazebo)">
+                <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            </xacro:if>
+            <xacro:unless value="$(arg use_gazebo)">
+                <plugin>mock_components/GenericSystem</plugin>
+                <param name="calculate_dynamics">true</param>
+                <!-- Replace the mock plugin and parameter above for physical hardware.
+                <plugin>robot_hardware/WheelJointHardwareInterface</plugin>
+                <param name="port_name">/dev/ttyUSB1</param>
+                <param name="baud_rate">57600</param>
+                -->
+            </xacro:unless>
         </hardware>
 
         <!-- Rotating Platform Joint -->
@@ -61,13 +71,18 @@
 
     <ros2_control name="robotic_arm" type="system">
         <hardware>
-            <plugin>mock_components/GenericSystem</plugin>
-            <param name="calculate_dynamics">true</param>
-            <!-- Replace the mock plugin and parameter above for physical hardware.
-            <plugin>robot_hardware/ArmJointsHardwareInterface</plugin>
-            <param name="port_name">/dev/ttyUSB2</param>
-            <param name="baud_rate">57600</param>
-            -->
+            <xacro:if value="$(arg use_gazebo)">
+                <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+            </xacro:if>
+            <xacro:unless value="$(arg use_gazebo)">
+                <plugin>mock_components/GenericSystem</plugin>
+                <param name="calculate_dynamics">true</param>
+                <!-- Replace the mock plugin and parameter above for physical hardware.
+                <plugin>robot_hardware/ArmJointsHardwareInterface</plugin>
+                <param name="port_name">/dev/ttyUSB2</param>
+                <param name="baud_rate">57600</param>
+                -->
+            </xacro:unless>
         </hardware>
 
         <!-- Robotic Arm Joints -->

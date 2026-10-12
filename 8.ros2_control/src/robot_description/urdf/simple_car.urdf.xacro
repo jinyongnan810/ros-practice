@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
 <robot name="two_wheel_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:arg name="use_gazebo" default="false" />
+    <xacro:arg name="controller_config" default="" />
+
     <xacro:include filename="simple_car.materials.xacro" />
     <xacro:include filename="simple_car.properties.xacro" />
     <xacro:include filename="simple_car.inertias.xacro" />
     <xacro:include filename="simple_car.wheel.xacro" />
     <xacro:include filename="simple_car.arm.xacro" />
     <xacro:include filename="simple_car.ros2_control.xacro" />
+    <xacro:if value="$(arg use_gazebo)">
+        <xacro:include filename="simple_car.gazebo.xacro" />
+    </xacro:if>
 
     <!-- ====================== Links ====================== -->
 
