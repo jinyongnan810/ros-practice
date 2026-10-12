@@ -1,0 +1,9 @@
+<library path="robot_controllers">
+  <class name="robot_controllers/WheelPositionController"
+    type="robot_controllers::WheelPositionController"
+    base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Single-joint position controller accepting one Float64MultiArray target on ~/commands.
+    </description>
+  </class>
+</library>

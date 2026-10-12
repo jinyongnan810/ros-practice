@@ -21,6 +21,13 @@ A workspace dedicated to **`ros2_control`** practices, covering hardware interfa
     │   └── launch/
     │       ├── robot.launch.xml    # Orchestrates state publishers, controller_manager, spawners & RViz2
     │       └── teleop.launch.xml   # Keyboard teleop configured with TwistStamped for diff_drive_controller
+    ├── robot_controllers/          # Custom ros2_control controller plugin package
+    │   ├── CMakeLists.txt          # Build, install, export plugin & tests
+    │   ├── package.xml             # Controller and realtime buffer dependencies
+    │   ├── robot_controllers.xml   # WheelPositionController plugin registration
+    │   ├── include/robot_controllers/wheel_position_controller.hpp
+    │   ├── src/wheel_position_controller.cpp
+    │   └── test/test_wheel_position_controller.cpp
     ├── robot_hardware/             # ros2_control hardware interface & motor driver package
     │   ├── CMakeLists.txt          # ament_cmake build rules (compiles robot_hardware plugin library)
     │   ├── package.xml             # Dependencies (hardware_interface, dynamixel_sdk, etc.)
@@ -126,6 +133,40 @@ To use a position component with physical actuators, replace its mock plugin and
 Each component owns a serial connection. Use separate adapters/ports for the base, platform, and arm; the commented examples use `/dev/ttyUSB0`, `/dev/ttyUSB1`, and `/dev/ttyUSB2`. These independent plugins do not coordinate access to a shared serial bus.
 
 The new position plugins read encoder feedback and write position targets when connected. Activation holds the measured position before enabling torque; deactivation disables torque. If the connection cannot be initialized, they fall back to mock position feedback with velocity computed over the control period. The current XL330 driver does not propagate per-motor communication errors, so opening a port alone does not confirm actuator communication.
+
+---
+
+### Custom Wheel Position Controller (`robot_controllers`)
+
+`robot_controllers/WheelPositionController` is a plugin derived from `controller_interface::ControllerInterface`. It replaces `JointGroupPositionController` for `wheel_joint_controller`; the arm continues to use the standard controller. The plugin is registered in `robot_controllers.xml` and selected in `robot_controllers.yaml`, so both the mock/physical launch and Gazebo launch load it through the controller manager.
+
+The controller accepts the same `joints: [wheel_joint]` parameter and `std_msgs/msg/Float64MultiArray` messages on `/wheel_joint_controller/commands` as the previous controller. Exactly one finite position target in radians is required. It claims `wheel_joint/position` for commands and feedback, holds the measured position on activation, and forwards the latest valid target on each update. Inactive commands and targets from previous activations are ignored. A realtime buffer transfers subscriber targets into the control loop. This is direct position forwarding; trajectory interpolation and PID control are not implemented.
+
+Build the new package and its bringup configuration, then restart the launch:
+
+```bash
+colcon build --symlink-install --packages-up-to robot_controllers robot_bringup
+source install/setup.bash
+ros2 launch robot_bringup robot.launch.xml use_position_command_gui:=true
+# Alternatively: ros2 launch robot_bringup gazebo.launch.xml use_position_command_gui:=true
+```
+
+The existing GUI works unchanged. To command the platform manually and inspect the plugin:
+
+```bash
+ros2 control list_controller_types
+ros2 control list_controllers
+ros2 topic pub --once /wheel_joint_controller/commands std_msgs/msg/Float64MultiArray '{data: [0.5]}'
+```
+
+ROS tests cover plugin discovery, command forwarding, invalid inputs, activation holding, and stale targets after reactivation:
+
+```bash
+colcon test --packages-select robot_controllers
+colcon test-result --verbose
+```
+
+See the [Jazzy ControllerInterface documentation](https://control.ros.org/jazzy/doc/api/classcontroller__interface_1_1ControllerInterfaceBase.html) for lifecycle and interface contracts.
 
 ---
 

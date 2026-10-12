@@ -15,9 +15,9 @@ controller_manager:
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
-    # Position controller for the rotating platform joint
+    # Custom position controller plugin for the rotating platform joint
     wheel_joint_controller:
-      type: position_controllers/JointGroupPositionController
+      type: robot_controllers/WheelPositionController
 
     # Position controller for the 2-DOF robotic arm joints
     arm_controller:
@@ -78,6 +78,7 @@ diff_drive_controller:
         min_acceleration: -2.0 # rad/s^2
 
 # Note: Unlike diff_drive_controller (which computes kinematics, odometry, and limits),
+# The custom WheelPositionController and JointGroupPositionController forward position targets.
 # JointGroupPositionController is a lightweight forward command controller that simply
 # passes target setpoints from topic to hardware interface; only "joints" is required.
 # (Use joint_trajectory_controller/JointTrajectoryController if splines/limits/PID are needed.)
