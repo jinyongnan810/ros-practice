@@ -22,6 +22,8 @@ protected:
   static void SetUpTestSuite() { rclcpp::init(0, nullptr); }
   static void TearDownTestSuite() { rclcpp::shutdown(); }
 
+  virtual double coefficient() const { return 0.05; }
+
   void SetUp() override
   {
     controller_ = std::make_unique<robot_controllers::WheelPositionController>();
@@ -31,6 +33,8 @@ protected:
       ReturnType::OK);
     ASSERT_TRUE(controller_->get_node()->set_parameter(
       rclcpp::Parameter("joints", std::vector<std::string>{"wheel_joint"})).successful);
+    ASSERT_TRUE(controller_->get_node()->set_parameter(
+      rclcpp::Parameter("coefficient", coefficient())).successful);
     ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State{}), CallbackReturn::SUCCESS);
     command_handle_ = std::make_shared<hardware_interface::CommandInterface>(
       "wheel_joint", "position", &command_);
@@ -102,7 +106,7 @@ TEST_F(WheelPositionControllerTest, PluginIsDiscoverable)
   EXPECT_NE(plugin, nullptr);
 }
 
-TEST_F(WheelPositionControllerTest, HoldsMeasuredPositionAndForwardsValidCommands)
+TEST_F(WheelPositionControllerTest, HoldsMeasuredPositionAndBlendsTargetsWithFreshFeedback)
 {
   EXPECT_EQ(controller_->command_interface_configuration().names,
     std::vector<std::string>{"wheel_joint/position"});
@@ -114,9 +118,12 @@ TEST_F(WheelPositionControllerTest, HoldsMeasuredPositionAndForwardsValidCommand
   EXPECT_DOUBLE_EQ(command_, position_);
   publish({0.8});
   ASSERT_EQ(update(), ReturnType::OK);
-  EXPECT_DOUBLE_EQ(command_, 0.8);
+  EXPECT_NEAR(command_, 0.325, 1e-12);
   ASSERT_EQ(update(), ReturnType::OK);
-  EXPECT_DOUBLE_EQ(command_, 0.8);
+  EXPECT_NEAR(command_, 0.325, 1e-12);
+  position_ = 0.6;
+  ASSERT_EQ(update(), ReturnType::OK);
+  EXPECT_NEAR(command_, 0.61, 1e-12);
 }
 
 TEST_F(WheelPositionControllerTest, RejectsMalformedCommandsWithoutChangingTarget)
@@ -130,7 +137,7 @@ TEST_F(WheelPositionControllerTest, RejectsMalformedCommandsWithoutChangingTarge
   {
     publish(data);
     EXPECT_EQ(update(), ReturnType::OK);
-    EXPECT_DOUBLE_EQ(command_, 0.8);
+    EXPECT_NEAR(command_, 0.325, 1e-12);
   }
 }
 
@@ -160,4 +167,52 @@ TEST_F(WheelPositionControllerTest, RejectsInvalidConfigurationOrMissingFeedback
     controller_->get_node()->set_parameter(rclcpp::Parameter("joints", joints));
     EXPECT_EQ(controller_->on_configure(rclcpp_lifecycle::State{}), CallbackReturn::ERROR);
   }
+}
+
+class DirectWheelPositionControllerTest : public WheelPositionControllerTest
+{
+protected:
+  double coefficient() const override { return 1.0; }
+};
+
+TEST_F(DirectWheelPositionControllerTest, CoefficientOneForwardsTargetDirectly)
+{
+  ASSERT_EQ(controller_->on_activate(rclcpp_lifecycle::State{}), CallbackReturn::SUCCESS);
+  publish({0.8});
+  ASSERT_EQ(update(), ReturnType::OK);
+  EXPECT_DOUBLE_EQ(command_, 0.8);
+}
+
+class FeedbackWheelPositionControllerTest : public WheelPositionControllerTest
+{
+protected:
+  double coefficient() const override { return 0.0; }
+};
+
+TEST_F(FeedbackWheelPositionControllerTest, CoefficientZeroFollowsMeasuredPosition)
+{
+  ASSERT_EQ(controller_->on_activate(rclcpp_lifecycle::State{}), CallbackReturn::SUCCESS);
+  publish({0.8});
+  position_ = -0.2;
+  ASSERT_EQ(update(), ReturnType::OK);
+  EXPECT_DOUBLE_EQ(command_, position_);
+}
+
+TEST_F(WheelPositionControllerTest, RejectsInvalidCoefficient)
+{
+  for (const auto coefficient : {-0.1, 1.1, std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::infinity()})
+  {
+    controller_->get_node()->set_parameter(rclcpp::Parameter("coefficient", coefficient));
+    EXPECT_EQ(controller_->on_configure(rclcpp_lifecycle::State{}), CallbackReturn::ERROR);
+  }
+}
+
+TEST_F(WheelPositionControllerTest, InvalidFeedbackDoesNotWriteACommand)
+{
+  ASSERT_EQ(controller_->on_activate(rclcpp_lifecycle::State{}), CallbackReturn::SUCCESS);
+  const double previous_command = command_;
+  position_ = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_EQ(update(), ReturnType::ERROR);
+  EXPECT_DOUBLE_EQ(command_, previous_command);
 }

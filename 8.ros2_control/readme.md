@@ -140,7 +140,7 @@ The new position plugins read encoder feedback and write position targets when c
 
 `robot_controllers/WheelPositionController` is a plugin derived from `controller_interface::ControllerInterface`. It replaces `JointGroupPositionController` for `wheel_joint_controller`; the arm continues to use the standard controller. The plugin is registered in `robot_controllers.xml` and selected in `robot_controllers.yaml`, so both the mock/physical launch and Gazebo launch load it through the controller manager.
 
-The controller accepts the same `joints: [wheel_joint]` parameter and `std_msgs/msg/Float64MultiArray` messages on `/wheel_joint_controller/commands` as the previous controller. Exactly one finite position target in radians is required. It claims `wheel_joint/position` for commands and feedback, holds the measured position on activation, and forwards the latest valid target on each update. Inactive commands and targets from previous activations are ignored. A realtime buffer transfers subscriber targets into the control loop. This is direct position forwarding; trajectory interpolation and PID control are not implemented.
+The controller accepts the same `joints: [wheel_joint]` parameter and `std_msgs/msg/Float64MultiArray` messages on `/wheel_joint_controller/commands` as the previous controller. Exactly one finite position target in radians is required. It claims `wheel_joint/position` for commands and feedback, holds the measured position on activation, and blends the latest valid target with current measured position on each update: `output = coefficient * target + (1 - coefficient) * measured_position`. Inactive commands and targets from previous activations are ignored. A realtime buffer transfers subscriber targets into the control loop. The `coefficient` parameter defaults to `0.05` and must be finite and in `[0, 1]`. At `0.05`, each output uses 5% target and 95% measured position. A value of `1.0` forwards the target directly; `0.0` follows measured position. The target is retained across updates while fresh feedback is read each time. The coefficient is read during configuration, so reconfigure the controller after changing it. Smoothing depends on the update rate and hardware response; trajectory interpolation and PID control are not implemented.
 
 Build the new package and its bringup configuration, then restart the launch:
 
@@ -159,7 +159,7 @@ ros2 control list_controllers
 ros2 topic pub --once /wheel_joint_controller/commands std_msgs/msg/Float64MultiArray '{data: [0.5]}'
 ```
 
-ROS tests cover plugin discovery, command forwarding, invalid inputs, activation holding, and stale targets after reactivation:
+ROS tests cover plugin discovery, coefficient blending and endpoints, invalid inputs and feedback, activation holding, and stale targets after reactivation:
 
 ```bash
 colcon test --packages-select robot_controllers

@@ -14,17 +14,18 @@ namespace robot_controllers
 {
 
 /**
- * @brief Forward position targets to one joint through ros2_control.
+ * @brief Blend position targets with feedback for one joint through ros2_control.
  *
  * The `joints` parameter must contain exactly one name. The controller claims
  * that joint's position command and state interfaces and accepts one target in
  * radians in a Float64MultiArray on ~/commands. This preserves the command
  * format used by JointGroupPositionController and the position command GUI.
  *
- * Activation initializes the target from measured feedback. Subsequent updates
- * hold the latest accepted target; this controller does not interpolate a
- * trajectory or calculate motor effort. Position tracking is provided by the
- * hardware interface or Gazebo backend.
+ * Activation initializes the target from measured feedback. Each update writes
+ * coefficient * target + (1 - coefficient) * measured_position. The coefficient
+ * defaults to 0.05 and must be in [0, 1]. The original target is retained while
+ * the measured position changes. No trajectory or motor effort is calculated;
+ * position tracking is provided by the hardware interface or Gazebo backend.
  */
 class WheelPositionController : public controller_interface::ControllerInterface
 {
@@ -35,7 +36,7 @@ public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
   /// Request measured position feedback to initialize the activation hold target.
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
-  /// Validate the joint parameter and create the command subscription while inactive.
+  /// Validate the joint and coefficient parameters and create the command subscription while inactive.
   controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
   /// Validate loaned interfaces, hold the measured position, and begin accepting targets.
   controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
@@ -43,7 +44,7 @@ public:
   controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
   /// Release the subscription so a subsequent configure can recreate it.
   controller_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
-  /// Write the current target in the control loop; report failure to the controller manager.
+  /// Write a blend of the current target and measured position; report failure to the controller manager.
   controller_interface::return_type update(const rclcpp::Time &, const rclcpp::Duration &) override;
 
 private:
@@ -58,6 +59,8 @@ private:
   std::string interface_name_;
   // Initialized during activation, then read and updated only by the control loop.
   double target_position_{0.0};
+  // Blend weight cached during configure; 0 follows feedback, 1 forwards the target.
+  double coefficient_{0.05};
   // Shared by lifecycle callbacks, the subscriber, and the control loop.
   std::atomic<bool> accepting_commands_{false};
   // Each activation invalidates targets received during earlier activations.

@@ -86,6 +86,8 @@ diff_drive_controller:
 # Parameters for Rotating Platform Joint Position Controller
 wheel_joint_controller:
   ros__parameters:
+    # Blend target and measured position on each update (valid range: 0.0 to 1.0).
+    coefficient: 0.05
     joints:
       - wheel_joint
 

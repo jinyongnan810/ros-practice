@@ -15,6 +15,7 @@ controller_interface::CallbackReturn WheelPositionController::on_init()
   {
     // Match the standard position controller parameter so existing YAML can be reused.
     auto_declare<std::vector<std::string>>("joints", std::vector<std::string>{});
+    auto_declare<double>("coefficient", 0.05);
   }
   catch (const std::exception & error)
   {
@@ -44,6 +45,13 @@ controller_interface::CallbackReturn WheelPositionController::on_configure(
   if (joints.size() != 1 || joints.front().empty())
   {
     RCLCPP_ERROR(get_node()->get_logger(), "'joints' must contain exactly one nonempty joint name.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  // Cache the blend weight during configuration, outside the realtime update loop.
+  coefficient_ = get_node()->get_parameter("coefficient").as_double();
+  if (!std::isfinite(coefficient_) || coefficient_ < 0.0 || coefficient_ > 1.0)
+  {
+    RCLCPP_ERROR(get_node()->get_logger(), "'coefficient' must be finite and in [0, 1].");
     return controller_interface::CallbackReturn::ERROR;
   }
   // The controller manager resolves these names and loans the interfaces on activation.
@@ -137,8 +145,21 @@ controller_interface::return_type WheelPositionController::update(
   {
     target_position_ = command->position;
   }
+  // Blend the requested target with fresh measured feedback, not the previous
+  // output command. Preserve target_position_ so repeated updates approach it.
+  const auto position = state_interfaces_.front().get_optional<double>();
+  if (!position.has_value() || !std::isfinite(*position))
+  {
+    return controller_interface::return_type::ERROR;
+  }
+  const double blended_position =
+    coefficient_ * target_position_ + (1.0 - coefficient_) * (*position);
+  if (!std::isfinite(blended_position))
+  {
+    return controller_interface::return_type::ERROR;
+  }
   // No allocation, logging, or blocking subscriber operations in the control loop.
-  return command_interfaces_.front().set_value(target_position_) ?
+  return command_interfaces_.front().set_value(blended_position) ?
     controller_interface::return_type::OK : controller_interface::return_type::ERROR;
 }
 
