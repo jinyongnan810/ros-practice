@@ -31,6 +31,10 @@
         {
             "name": "8.ros2_control",
             "path": "8.ros2_control"
+        },
+        {
+            "name": "9.moveit2",
+            "path": "9.moveit2"
         }
     ],
     "settings": {
