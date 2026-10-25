@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import xacro
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -11,7 +12,9 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     package_share = Path(get_package_share_directory("robot_arm_description"))
-    robot_description = (package_share / "urdf" / "six_axis_arm.urdf").read_text()
+    robot_description = xacro.process_file(
+        str(package_share / "urdf" / "six_axis_arm.urdf.xacro")
+    ).toxml()
     gui = LaunchConfiguration("gui")
 
     return LaunchDescription([

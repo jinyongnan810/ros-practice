@@ -16,6 +16,11 @@ including collision geometry, inertial properties, joint limits, and a `tool0`
 frame. The joints are base yaw, shoulder pitch, elbow pitch, wrist roll,
 wrist pitch, and tool roll. The arm is fixed to `world`.
 
+Edit the named Xacro properties at the top of
+`src/robot_arm_description/urdf/six_axis_arm.urdf.xacro` to change link sizes
+and masses. Visuals, collisions, centres of mass, inertia tensors, and joint
+offsets use these properties. The display launch file expands Xacro automatically.
+
 From `9.moveit2` in a ROS 2 Jazzy terminal:
 
 ```bash

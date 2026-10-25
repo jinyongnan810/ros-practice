@@ -1,0 +1,216 @@
+<?xml version="1.0"?>
+<!-- Dimensions in metres, mass in kilograms, angles in radians.
+     Joint axes: base yaw, shoulder pitch, elbow pitch, wrist roll,
+     wrist pitch, tool roll. Zero pose extends along +X above the base. -->
+<robot name="six_axis_arm" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Edit dimensions here. Geometry, centres of mass, inertia tensors,
+       and downstream joint positions all follow these values. -->
+  <!-- Base and shoulder cylinders extend along local Z. -->
+  <xacro:property name="base_radius" value="0.12"/>
+  <xacro:property name="base_height" value="0.08"/>
+  <xacro:property name="base_mass" value="4.0"/>
+  <xacro:property name="shoulder_radius" value="0.075"/>
+  <xacro:property name="shoulder_height" value="0.20"/>
+  <xacro:property name="shoulder_mass" value="2.0"/>
+
+  <!-- Arm boxes extend along local X; width is Y and height is Z. -->
+  <xacro:property name="upper_arm_length" value="0.30"/>
+  <xacro:property name="upper_arm_width" value="0.08"/>
+  <xacro:property name="upper_arm_height" value="0.08"/>
+  <xacro:property name="upper_arm_mass" value="2.0"/>
+  <xacro:property name="forearm_length" value="0.26"/>
+  <xacro:property name="forearm_width" value="0.065"/>
+  <xacro:property name="forearm_height" value="0.065"/>
+  <xacro:property name="forearm_mass" value="1.5"/>
+
+  <!-- Wrist and flange lengths extend along local X. -->
+  <xacro:property name="wrist_1_radius" value="0.045"/>
+  <xacro:property name="wrist_1_length" value="0.08"/>
+  <xacro:property name="wrist_1_mass" value="0.5"/>
+  <xacro:property name="wrist_2_length" value="0.07"/>
+  <xacro:property name="wrist_2_width" value="0.055"/>
+  <xacro:property name="wrist_2_height" value="0.055"/>
+  <xacro:property name="wrist_2_mass" value="0.4"/>
+  <xacro:property name="flange_radius" value="0.035"/>
+  <xacro:property name="flange_length" value="0.04"/>
+  <xacro:property name="flange_mass" value="0.2"/>
+
+  <material name="dark"><color rgba="0.18 0.20 0.24 1"/></material>
+  <material name="blue"><color rgba="0.12 0.40 0.80 1"/></material>
+  <material name="silver"><color rgba="0.75 0.78 0.82 1"/></material>
+
+  <link name="world"/>
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/><child link="base_link"/>
+  </joint>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${base_height / 2}"/>
+      <geometry><cylinder radius="${base_radius}" length="${base_height}"/></geometry>
+      <material name="dark"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${base_height / 2}"/>
+      <geometry><cylinder radius="${base_radius}" length="${base_height}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${base_height / 2}"/><mass value="${base_mass}"/>
+      <inertia ixx="${base_mass * (3 * base_radius**2 + base_height**2) / 12}" ixy="0" ixz="0"
+               iyy="${base_mass * (3 * base_radius**2 + base_height**2) / 12}" iyz="0"
+               izz="${base_mass * base_radius**2 / 2}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/><child link="shoulder_link"/>
+    <origin xyz="0 0 ${base_height}"/><axis xyz="0 0 1"/>
+    <limit lower="-3.141593" upper="3.141593" effort="100" velocity="1.5"/>
+    <dynamics damping="0.1" friction="0.05"/>
+  </joint>
+  <link name="shoulder_link">
+    <visual>
+      <origin xyz="0 0 ${shoulder_height / 2}"/>
+      <geometry><cylinder radius="${shoulder_radius}" length="${shoulder_height}"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${shoulder_height / 2}"/>
+      <geometry><cylinder radius="${shoulder_radius}" length="${shoulder_height}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${shoulder_height / 2}"/><mass value="${shoulder_mass}"/>
+      <inertia ixx="${shoulder_mass * (3 * shoulder_radius**2 + shoulder_height**2) / 12}" ixy="0" ixz="0"
+               iyy="${shoulder_mass * (3 * shoulder_radius**2 + shoulder_height**2) / 12}" iyz="0"
+               izz="${shoulder_mass * shoulder_radius**2 / 2}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint_2" type="revolute">
+    <parent link="shoulder_link"/><child link="upper_arm_link"/>
+    <origin xyz="0 0 ${shoulder_height}"/><axis xyz="0 1 0"/>
+    <limit lower="-1.570796" upper="1.570796" effort="100" velocity="1.5"/>
+    <dynamics damping="0.1" friction="0.05"/>
+  </joint>
+  <link name="upper_arm_link">
+    <visual>
+      <origin xyz="${upper_arm_length / 2} 0 0"/>
+      <geometry><box size="${upper_arm_length} ${upper_arm_width} ${upper_arm_height}"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="${upper_arm_length / 2} 0 0"/>
+      <geometry><box size="${upper_arm_length} ${upper_arm_width} ${upper_arm_height}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="${upper_arm_length / 2} 0 0"/><mass value="${upper_arm_mass}"/>
+      <inertia ixx="${upper_arm_mass * (upper_arm_width**2 + upper_arm_height**2) / 12}" ixy="0" ixz="0"
+               iyy="${upper_arm_mass * (upper_arm_length**2 + upper_arm_height**2) / 12}" iyz="0"
+               izz="${upper_arm_mass * (upper_arm_length**2 + upper_arm_width**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint_3" type="revolute">
+    <parent link="upper_arm_link"/><child link="forearm_link"/>
+    <origin xyz="${upper_arm_length} 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-2.356194" upper="2.356194" effort="60" velocity="1.8"/>
+    <dynamics damping="0.1" friction="0.05"/>
+  </joint>
+  <link name="forearm_link">
+    <visual>
+      <origin xyz="${forearm_length / 2} 0 0"/>
+      <geometry><box size="${forearm_length} ${forearm_width} ${forearm_height}"/></geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="${forearm_length / 2} 0 0"/>
+      <geometry><box size="${forearm_length} ${forearm_width} ${forearm_height}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="${forearm_length / 2} 0 0"/><mass value="${forearm_mass}"/>
+      <inertia ixx="${forearm_mass * (forearm_width**2 + forearm_height**2) / 12}" ixy="0" ixz="0"
+               iyy="${forearm_mass * (forearm_length**2 + forearm_height**2) / 12}" iyz="0"
+               izz="${forearm_mass * (forearm_length**2 + forearm_width**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint_4" type="revolute">
+    <parent link="forearm_link"/><child link="wrist_1_link"/>
+    <origin xyz="${forearm_length} 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.141593" upper="3.141593" effort="20" velocity="2.5"/>
+    <dynamics damping="0.05" friction="0.02"/>
+  </joint>
+  <link name="wrist_1_link">
+    <visual>
+      <origin xyz="${wrist_1_length / 2} 0 0" rpy="0 ${pi / 2} 0"/>
+      <geometry><cylinder radius="${wrist_1_radius}" length="${wrist_1_length}"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="${wrist_1_length / 2} 0 0" rpy="0 ${pi / 2} 0"/>
+      <geometry><cylinder radius="${wrist_1_radius}" length="${wrist_1_length}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="${wrist_1_length / 2} 0 0"/><mass value="${wrist_1_mass}"/>
+      <inertia ixx="${wrist_1_mass * wrist_1_radius**2 / 2}" ixy="0" ixz="0"
+               iyy="${wrist_1_mass * (3 * wrist_1_radius**2 + wrist_1_length**2) / 12}" iyz="0"
+               izz="${wrist_1_mass * (3 * wrist_1_radius**2 + wrist_1_length**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint_5" type="revolute">
+    <parent link="wrist_1_link"/><child link="wrist_2_link"/>
+    <origin xyz="${wrist_1_length} 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-1.570796" upper="1.570796" effort="20" velocity="2.5"/>
+    <dynamics damping="0.05" friction="0.02"/>
+  </joint>
+  <link name="wrist_2_link">
+    <visual>
+      <origin xyz="${wrist_2_length / 2} 0 0"/>
+      <geometry><box size="${wrist_2_length} ${wrist_2_width} ${wrist_2_height}"/></geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="${wrist_2_length / 2} 0 0"/>
+      <geometry><box size="${wrist_2_length} ${wrist_2_width} ${wrist_2_height}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="${wrist_2_length / 2} 0 0"/><mass value="${wrist_2_mass}"/>
+      <inertia ixx="${wrist_2_mass * (wrist_2_width**2 + wrist_2_height**2) / 12}" ixy="0" ixz="0"
+               iyy="${wrist_2_mass * (wrist_2_length**2 + wrist_2_height**2) / 12}" iyz="0"
+               izz="${wrist_2_mass * (wrist_2_length**2 + wrist_2_width**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <joint name="joint_6" type="revolute">
+    <parent link="wrist_2_link"/><child link="flange_link"/>
+    <origin xyz="${wrist_2_length} 0 0"/><axis xyz="1 0 0"/>
+    <limit lower="-3.141593" upper="3.141593" effort="10" velocity="3.0"/>
+    <dynamics damping="0.05" friction="0.02"/>
+  </joint>
+  <link name="flange_link">
+    <visual>
+      <origin xyz="${flange_length / 2} 0 0" rpy="0 ${pi / 2} 0"/>
+      <geometry><cylinder radius="${flange_radius}" length="${flange_length}"/></geometry>
+      <material name="dark"/>
+    </visual>
+    <collision>
+      <origin xyz="${flange_length / 2} 0 0" rpy="0 ${pi / 2} 0"/>
+      <geometry><cylinder radius="${flange_radius}" length="${flange_length}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="${flange_length / 2} 0 0"/><mass value="${flange_mass}"/>
+      <inertia ixx="${flange_mass * flange_radius**2 / 2}" ixy="0" ixz="0"
+               iyy="${flange_mass * (3 * flange_radius**2 + flange_length**2) / 12}" iyz="0"
+               izz="${flange_mass * (3 * flange_radius**2 + flange_length**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <!-- Tool frame at the flange face, with +Z pointing out along the tool. -->
+  <joint name="flange_to_tool" type="fixed">
+    <parent link="flange_link"/><child link="tool0"/>
+    <origin xyz="${flange_length} 0 0" rpy="0 ${pi / 2} 0"/>
+  </joint>
+  <link name="tool0"/>
+</robot>
