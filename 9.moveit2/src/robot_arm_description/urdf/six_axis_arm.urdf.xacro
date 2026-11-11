@@ -36,6 +36,18 @@
   <xacro:property name="flange_length" value="0.04"/>
   <xacro:property name="flange_mass" value="0.2"/>
 
+  <!-- Gripper dimensions. Extends along tool0 +Z axis. -->
+  <xacro:property name="gripper_base_length" value="0.04"/>
+  <xacro:property name="gripper_base_width" value="0.08"/>
+  <xacro:property name="gripper_base_height" value="0.04"/>
+  <xacro:property name="gripper_base_mass" value="0.3"/>
+  <xacro:property name="finger_length" value="0.05"/>
+  <xacro:property name="finger_width" value="0.01"/>
+  <xacro:property name="finger_height" value="0.02"/>
+  <xacro:property name="finger_mass" value="0.05"/>
+  <xacro:property name="finger_offset" value="0.03"/>
+  <xacro:property name="finger_stroke" value="0.024"/>
+
   <material name="dark"><color rgba="0.18 0.20 0.24 1"/></material>
   <material name="blue"><color rgba="0.12 0.40 0.80 1"/></material>
   <material name="silver"><color rgba="0.75 0.78 0.82 1"/></material>
@@ -213,4 +225,78 @@
     <origin xyz="${flange_length} 0 0" rpy="0 ${pi / 2} 0"/>
   </joint>
   <link name="tool0"/>
+
+  <!-- Parallel 2-finger gripper attached to tool0, extending along +Z. -->
+  <joint name="tool0_to_gripper_base" type="fixed">
+    <parent link="tool0"/><child link="gripper_base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link name="gripper_base_link">
+    <visual>
+      <origin xyz="0 0 ${gripper_base_length / 2}"/>
+      <geometry><box size="${gripper_base_height} ${gripper_base_width} ${gripper_base_length}"/></geometry>
+      <material name="dark"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${gripper_base_length / 2}"/>
+      <geometry><box size="${gripper_base_height} ${gripper_base_width} ${gripper_base_length}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${gripper_base_length / 2}"/><mass value="${gripper_base_mass}"/>
+      <inertia ixx="${gripper_base_mass * (gripper_base_width**2 + gripper_base_length**2) / 12}" ixy="0" ixz="0"
+               iyy="${gripper_base_mass * (gripper_base_height**2 + gripper_base_length**2) / 12}" iyz="0"
+               izz="${gripper_base_mass * (gripper_base_height**2 + gripper_base_width**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <joint name="left_finger_joint" type="prismatic">
+    <parent link="gripper_base_link"/><child link="left_finger_link"/>
+    <origin xyz="0 ${finger_offset} ${gripper_base_length}" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0.0" upper="${finger_stroke}" effort="20" velocity="0.2"/>
+    <dynamics damping="0.05" friction="0.02"/>
+  </joint>
+  <link name="left_finger_link">
+    <visual>
+      <origin xyz="0 0 ${finger_length / 2}"/>
+      <geometry><box size="${finger_height} ${finger_width} ${finger_length}"/></geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${finger_length / 2}"/>
+      <geometry><box size="${finger_height} ${finger_width} ${finger_length}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${finger_length / 2}"/><mass value="${finger_mass}"/>
+      <inertia ixx="${finger_mass * (finger_width**2 + finger_length**2) / 12}" ixy="0" ixz="0"
+               iyy="${finger_mass * (finger_height**2 + finger_length**2) / 12}" iyz="0"
+               izz="${finger_mass * (finger_height**2 + finger_width**2) / 12}"/>
+    </inertial>
+  </link>
+
+  <joint name="right_finger_joint" type="prismatic">
+    <parent link="gripper_base_link"/><child link="right_finger_link"/>
+    <origin xyz="0 -${finger_offset} ${gripper_base_length}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0.0" upper="${finger_stroke}" effort="20" velocity="0.2"/>
+    <dynamics damping="0.05" friction="0.02"/>
+    <mimic joint="left_finger_joint" multiplier="1" offset="0"/>
+  </joint>
+  <link name="right_finger_link">
+    <visual>
+      <origin xyz="0 0 ${finger_length / 2}"/>
+      <geometry><box size="${finger_height} ${finger_width} ${finger_length}"/></geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${finger_length / 2}"/>
+      <geometry><box size="${finger_height} ${finger_width} ${finger_length}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${finger_length / 2}"/><mass value="${finger_mass}"/>
+      <inertia ixx="${finger_mass * (finger_width**2 + finger_length**2) / 12}" ixy="0" ixz="0"
+               iyy="${finger_mass * (finger_height**2 + finger_length**2) / 12}" iyz="0"
+               izz="${finger_mass * (finger_height**2 + finger_width**2) / 12}"/>
+    </inertial>
+  </link>
 </robot>

@@ -20,7 +20,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             "gui", default_value="true", choices=["true", "false"],
-            description="Show sliders for the six arm joints.",
+            description="Show sliders for the arm and gripper joints.",
         ),
         Node(
             package="robot_state_publisher",

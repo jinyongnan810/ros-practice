@@ -11,10 +11,12 @@ sudo apt install ros-jazzy-moveit
 
 ## Display the six-axis arm
 
-The `robot_arm_description` package contains a primitive-shape six-axis arm,
-including collision geometry, inertial properties, joint limits, and a `tool0`
-frame. The joints are base yaw, shoulder pitch, elbow pitch, wrist roll,
-wrist pitch, and tool roll. The arm is fixed to `world`.
+The `robot_arm_description` package contains a primitive-shape six-axis arm with
+a parallel two-finger gripper, including collision geometry, inertial properties,
+joint limits, and a `tool0` frame. The arm joints are base yaw, shoulder pitch,
+elbow pitch, wrist roll, wrist pitch, and tool roll. The gripper attaches to
+`tool0` with a prismatic `left_finger_joint` and a mimicked `right_finger_joint`
+so both fingers move symmetrically towards each other. The arm is fixed to `world`.
 
 Edit the named Xacro properties at the top of
 `src/robot_arm_description/urdf/six_axis_arm.urdf.xacro` to change link sizes
@@ -162,3 +164,26 @@ To edit the generated configuration at any time:
 QT_QPA_PLATFORM=xcb ros2 launch moveit_setup_assistant setup_assistant.launch.py
 ```
 Select **Edit Existing MoveIt Configuration Package** and choose `src/robot_arm_moveit_config`.
+
+---
+
+### 4. Parallel 2-Finger Gripper
+
+The URDF and MoveIt 2 configuration also include a 2-finger parallel gripper mounted at `tool0`:
+
+- **URDF (`six_axis_arm.urdf.xacro`)**:
+  - `gripper_base_link` fixed to `tool0` (`tool0_to_gripper_base`).
+  - `left_finger_joint` (`prismatic`, axis `0 -1 0`, range `0.0` to `0.024` m) driving `left_finger_link` inward.
+  - `right_finger_joint` (`prismatic`, axis `0 1 0`, range `0.0` to `0.024` m) driving `right_finger_link` inward with `<mimic joint="left_finger_joint" multiplier="1" offset="0"/>`.
+- **SRDF (`six_axis_arm.srdf`)**:
+  - `gripper` planning group and `<end_effector name="gripper" parent_link="tool0" group="gripper" parent_group="arm"/>`.
+  - Preset poses `open` (`0.0`) and `close` (`0.024`).
+- **Controllers (`six_axis_arm.ros2_control.xacro`, `ros2_controllers.yaml`, `moveit_controllers.yaml`)**:
+  - `gripper_controller` (`FollowJointTrajectory` / `JointTrajectoryController`) commands `left_finger_joint`; `right_finger_joint` exposes state interfaces and mirrors `left_finger_joint` via `mock_components/GenericSystem`.
+
+Rebuild both packages after URDF/config changes before running `display.launch.py` or `demo.launch.py`:
+
+```bash
+colcon build --symlink-install
+source install/setup.bash
+```
