@@ -187,3 +187,13 @@ Rebuild both packages after URDF/config changes before running `display.launch.p
 colcon build --symlink-install
 source install/setup.bash
 ```
+
+
+### 5. Running the MoveIt 2 Demo
+
+- Launch the MoveIt 2 demo with the following command:
+
+```bash
+ros2 launch robot_arm_moveit_config demo.launch.py
+ros2 run robot_arm_commander_cpp test_moveit
+```
