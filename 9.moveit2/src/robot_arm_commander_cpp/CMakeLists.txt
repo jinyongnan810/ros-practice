@@ -24,8 +24,19 @@ ament_target_dependencies(test_moveit
   tf2_geometry_msgs
 )
 
+add_executable(commander src/commander.cpp)
+ament_target_dependencies(commander
+  rclcpp
+  moveit_ros_planning_interface
+  moveit_msgs
+  geometry_msgs
+  tf2
+  tf2_geometry_msgs
+)
+
 install(TARGETS
   test_moveit
+  commander
   DESTINATION lib/${PROJECT_NAME}
 )
 
