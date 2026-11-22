@@ -191,9 +191,73 @@ source install/setup.bash
 
 ### 5. Running the MoveIt 2 Demo
 
-- Launch the MoveIt 2 demo with the following command:
+- Launch the MoveIt 2 demo (which also starts the `commander` action server node by default):
 
 ```bash
 ros2 launch robot_arm_moveit_config demo.launch.py
+```
+
+- To run the standalone `test_moveit` script instead (optionally disabling `commander` in the launch):
+
+```bash
+ros2 launch robot_arm_moveit_config demo.launch.py launch_commander:=false
 ros2 run robot_arm_commander_cpp test_moveit
+```
+
+---
+
+### 6. Controlling Arm & Gripper via `commander` Action Servers
+
+The `commander` node exposes two ROS 2 action servers defined in `robot_arm_interface`:
+- `/move_arm` (`robot_arm_interface/action/MoveArm`)
+- `/control_gripper` (`robot_arm_interface/action/ControlGripper`)
+
+#### Arm Commands (`/move_arm`)
+
+- **Named target (`mode: 0`):** `home`, `pose_1`, `pose_2`
+
+```bash
+ros2 action send_goal /move_arm robot_arm_interface/action/MoveArm \
+  "{mode: 0, named_target: 'pose_2'}" --feedback
+
+ros2 action send_goal /move_arm robot_arm_interface/action/MoveArm \
+  "{mode: 0, named_target: 'home'}" --feedback
+```
+
+- **Joint target (`mode: 1`):** 6 joint values `[joint_1..joint_6]` in radians
+
+```bash
+ros2 action send_goal /move_arm robot_arm_interface/action/MoveArm \
+  "{mode: 1, joint_positions: [0.5, -0.7, 1.0, 0.0, -0.3, 0.0]}" --feedback
+```
+
+- **Pose target (`mode: 2`):** `cartesian_path: false` (default planner) or `true` (Cartesian path)
+
+```bash
+# Standard MoveIt pose planning
+ros2 action send_goal /move_arm robot_arm_interface/action/MoveArm \
+  "{mode: 2, target_pose: {position: {x: 0.55, y: 0.15, z: 0.35}, orientation: {x: 0.0, y: 0.7071, z: 0.0, w: 0.7071}}, cartesian_path: false}" --feedback
+
+# Cartesian straight-line motion
+ros2 action send_goal /move_arm robot_arm_interface/action/MoveArm \
+  "{mode: 2, target_pose: {position: {x: 0.55, y: -0.15, z: 0.35}, orientation: {x: 0.0, y: 0.7071, z: 0.0, w: 0.7071}}, cartesian_path: true}" --feedback
+```
+
+#### Gripper Commands (`/control_gripper`)
+
+- **Named target (`mode: 0`):** `open`, `close`
+
+```bash
+ros2 action send_goal /control_gripper robot_arm_interface/action/ControlGripper \
+  "{mode: 0, named_target: 'close'}" --feedback
+
+ros2 action send_goal /control_gripper robot_arm_interface/action/ControlGripper \
+  "{mode: 0, named_target: 'open'}" --feedback
+```
+
+- **Joint target (`mode: 1`):** `left_finger_joint` position in meters (`0.0` to `0.024`)
+
+```bash
+ros2 action send_goal /control_gripper robot_arm_interface/action/ControlGripper \
+  "{mode: 1, position: 0.012}" --feedback
 ```

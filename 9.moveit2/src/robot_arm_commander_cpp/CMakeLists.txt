@@ -8,9 +8,11 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(robot_arm_interface REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 
@@ -27,9 +29,11 @@ ament_target_dependencies(test_moveit
 add_executable(commander src/commander.cpp)
 ament_target_dependencies(commander
   rclcpp
+  rclcpp_action
   moveit_ros_planning_interface
   moveit_msgs
   geometry_msgs
+  robot_arm_interface
   tf2
   tf2_geometry_msgs
 )
