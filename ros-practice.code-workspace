@@ -35,6 +35,10 @@
         {
             "name": "9.moveit2",
             "path": "9.moveit2"
+        },
+        {
+            "name": "10.nav2",
+            "path": "10.nav2"
         }
     ],
     "settings": {
