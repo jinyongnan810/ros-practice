@@ -1,14 +1,22 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <xacro:macro name="six_axis_arm_ros2_control" params="name initial_positions_file">
+    <xacro:macro name="six_axis_arm_ros2_control" params="name initial_positions_file use_hardware:=false dynamixel_port:=/dev/ttyUSB0 baud_rate:=57600">
         <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
 
         <ros2_control name="${name}" type="system">
             <hardware>
-                <!-- By default, set up controllers for simulation. This won't work on real hardware -->
-                <plugin>mock_components/GenericSystem</plugin>
+                <xacro:if value="${use_hardware}">
+                    <plugin>arm_hardware/ArmHardwareInterface</plugin>
+                    <param name="dynamixel_port">${dynamixel_port}</param>
+                    <param name="baud_rate">${baud_rate}</param>
+                </xacro:if>
+                <xacro:unless value="${use_hardware}">
+                    <!-- By default, set up controllers for simulation. This won't work on real hardware -->
+                    <plugin>mock_components/GenericSystem</plugin>
+                </xacro:unless>
             </hardware>
             <joint name="joint_1">
+                <param name="motor_id">1</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['joint_1']}</param>
@@ -16,6 +24,7 @@
                 <state_interface name="velocity"/>
             </joint>
             <joint name="joint_2">
+                <param name="motor_id">2</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['joint_2']}</param>
@@ -23,6 +32,7 @@
                 <state_interface name="velocity"/>
             </joint>
             <joint name="joint_3">
+                <param name="motor_id">3</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['joint_3']}</param>
@@ -30,6 +40,7 @@
                 <state_interface name="velocity"/>
             </joint>
             <joint name="joint_4">
+                <param name="motor_id">4</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['joint_4']}</param>
@@ -37,6 +48,7 @@
                 <state_interface name="velocity"/>
             </joint>
             <joint name="joint_5">
+                <param name="motor_id">5</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['joint_5']}</param>
@@ -44,6 +56,7 @@
                 <state_interface name="velocity"/>
             </joint>
             <joint name="joint_6">
+                <param name="motor_id">6</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['joint_6']}</param>
@@ -51,6 +64,7 @@
                 <state_interface name="velocity"/>
             </joint>
             <joint name="left_finger_joint">
+                <param name="motor_id">7</param>
                 <command_interface name="position"/>
                 <state_interface name="position">
                   <param name="initial_value">${initial_positions['left_finger_joint']}</param>

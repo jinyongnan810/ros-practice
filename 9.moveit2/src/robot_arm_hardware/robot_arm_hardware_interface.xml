@@ -1,0 +1,9 @@
+<library path="robot_arm_hardware">
+    <class name="arm_hardware/ArmHardwareInterface"
+           type="arm_hardware::ArmHardwareInterface"
+           base_class_type="hardware_interface::SystemInterface">
+        <description>
+            Hardware interface for all robot arm and gripper joints using Dynamixel XL330 motors
+        </description>
+    </class>
+</library>

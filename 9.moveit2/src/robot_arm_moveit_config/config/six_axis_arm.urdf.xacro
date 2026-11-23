@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="six_axis_arm">
     <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+    <xacro:arg name="use_hardware" default="false" />
+    <xacro:arg name="dynamixel_port" default="/dev/ttyUSB0" />
+    <xacro:arg name="baud_rate" default="57600" />
 
     <!-- Import six_axis_arm urdf file -->
     <xacro:include filename="$(find robot_arm_description)/urdf/six_axis_arm.urdf.xacro" />
@@ -9,6 +12,11 @@
     <xacro:include filename="six_axis_arm.ros2_control.xacro" />
 
 
-    <xacro:six_axis_arm_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+    <xacro:six_axis_arm_ros2_control
+        name="SixAxisArmSystem"
+        initial_positions_file="$(arg initial_positions_file)"
+        use_hardware="$(arg use_hardware)"
+        dynamixel_port="$(arg dynamixel_port)"
+        baud_rate="$(arg baud_rate)"/>
 
 </robot>
